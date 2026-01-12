@@ -5,10 +5,17 @@ import { useCart } from '@/contexts/CartContext';
 import { useStore } from '@/contexts/StoreContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Minus, Plus, Trash2, ShoppingBag, Package, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
+import { wilayas, getBaladiyas } from '@/data/algeriaLocations';
 
 const Cart = () => {
   const { items, updateQuantity, removeFromCart, clearCart, total } = useCart();
@@ -17,30 +24,41 @@ const Cart = () => {
   const [customerInfo, setCustomerInfo] = useState({
     name: '',
     phone: '',
-    address: '',
+    wilaya: '',
+    baladiya: '',
   });
+
+  const availableBaladiyas = customerInfo.wilaya ? getBaladiyas(customerInfo.wilaya) : [];
 
   const handlePlaceOrder = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!customerInfo.name || !customerInfo.phone || !customerInfo.address) {
-      toast.error('Please fill in all fields');
+    if (!customerInfo.name || !customerInfo.phone || !customerInfo.wilaya || !customerInfo.baladiya) {
+      toast.error('يرجى ملء جميع الحقول');
       return;
     }
+
+    const selectedWilaya = wilayas.find(w => w.id === customerInfo.wilaya);
+    const selectedBaladiya = availableBaladiyas.find(b => b.id === customerInfo.baladiya);
+    const fullAddress = `${selectedBaladiya?.nameAr || ''}, ${selectedWilaya?.nameAr || ''}`;
 
     addOrder({
       items: items,
       customerName: customerInfo.name,
       customerPhone: customerInfo.phone,
-      customerAddress: customerInfo.address,
+      customerAddress: fullAddress,
       total: total,
       status: 'pending',
     });
 
     clearCart();
     setIsCheckout(false);
-    setCustomerInfo({ name: '', phone: '', address: '' });
-    toast.success('Order placed successfully! We will contact you soon.');
+    setCustomerInfo({ name: '', phone: '', wilaya: '', baladiya: '' });
+    toast.success('تم تأكيد الطلب بنجاح! سنتواصل معك قريباً.');
+  };
+
+  const handleWilayaChange = (value: string) => {
+    setCustomerInfo(prev => ({ ...prev, wilaya: value, baladiya: '' }));
   };
 
   if (items.length === 0 && !isCheckout) {
@@ -136,44 +154,70 @@ const Cart = () => {
               </div>
             ) : (
               <form onSubmit={handlePlaceOrder} className="bg-card rounded-lg p-6 card-elevated space-y-6">
-                <h2 className="font-display text-xl font-medium">Delivery Information</h2>
+                <h2 className="font-display text-xl font-medium">معلومات التوصيل</h2>
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="name">Full Name *</Label>
+                    <Label htmlFor="name">الاسم الكامل *</Label>
                     <Input
                       id="name"
                       value={customerInfo.name}
                       onChange={e => setCustomerInfo(prev => ({ ...prev, name: e.target.value }))}
-                      placeholder="Enter your full name"
+                      placeholder="أدخل اسمك الكامل"
+                      dir="rtl"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="phone">Phone Number *</Label>
+                    <Label htmlFor="phone">رقم الهاتف *</Label>
                     <Input
                       id="phone"
                       type="tel"
                       value={customerInfo.phone}
                       onChange={e => setCustomerInfo(prev => ({ ...prev, phone: e.target.value }))}
-                      placeholder="Enter your phone number"
+                      placeholder="أدخل رقم هاتفك"
+                      dir="ltr"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="address">Delivery Address *</Label>
-                    <Textarea
-                      id="address"
-                      value={customerInfo.address}
-                      onChange={e => setCustomerInfo(prev => ({ ...prev, address: e.target.value }))}
-                      placeholder="Enter your full address"
-                      rows={3}
-                    />
+                    <Label>الولاية *</Label>
+                    <Select value={customerInfo.wilaya} onValueChange={handleWilayaChange}>
+                      <SelectTrigger className="bg-background">
+                        <SelectValue placeholder="اختر الولاية" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-background z-50">
+                        {wilayas.map(wilaya => (
+                          <SelectItem key={wilaya.id} value={wilaya.id}>
+                            {wilaya.id} - {wilaya.nameAr}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>البلدية *</Label>
+                    <Select 
+                      value={customerInfo.baladiya} 
+                      onValueChange={(value) => setCustomerInfo(prev => ({ ...prev, baladiya: value }))}
+                      disabled={!customerInfo.wilaya}
+                    >
+                      <SelectTrigger className="bg-background">
+                        <SelectValue placeholder={customerInfo.wilaya ? "اختر البلدية" : "اختر الولاية أولاً"} />
+                      </SelectTrigger>
+                      <SelectContent className="bg-background z-50">
+                        {availableBaladiyas.map(baladiya => (
+                          <SelectItem key={baladiya.id} value={baladiya.id}>
+                            {baladiya.nameAr}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
                 <div className="flex gap-3 pt-4">
                   <Button type="button" variant="outline" onClick={() => setIsCheckout(false)}>
-                    Back to Cart
+                    العودة للسلة
                   </Button>
                   <Button type="submit" className="flex-1">
-                    Place Order
+                    تأكيد الطلب
                   </Button>
                 </div>
               </form>
