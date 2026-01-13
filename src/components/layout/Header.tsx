@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ShoppingBag, Menu, X } from 'lucide-react';
+import { ShoppingBag, Menu, X, Package } from 'lucide-react';
 import { useState } from 'react';
 import { useCart } from '@/contexts/CartContext';
 import { Button } from '@/components/ui/button';
@@ -23,6 +23,9 @@ const Header = () => {
             </Link>
             <Link to="/products" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               Shop
+            </Link>
+            <Link to="/track-order" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+              تتبع الطلب
             </Link>
             <Link to="/admin" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               Admin
@@ -68,6 +71,13 @@ const Header = () => {
                 onClick={() => setIsMenuOpen(false)}
               >
                 Shop
+              </Link>
+              <Link
+                to="/track-order"
+                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                تتبع الطلب
               </Link>
               <Link
                 to="/admin"
