@@ -4,8 +4,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import ProductList from '@/components/admin/ProductList';
 import OrderList from '@/components/admin/OrderList';
+import SalesStats from '@/components/admin/SalesStats';
 import { useStore } from '@/contexts/StoreContext';
-import { Package, ShoppingCart, ArrowLeft, TrendingUp, Box, DollarSign } from 'lucide-react';
+import { Package, ShoppingCart, ArrowLeft, TrendingUp, Box, DollarSign, BarChart3 } from 'lucide-react';
 
 const Admin = () => {
   const { products, orders } = useStore();
@@ -84,8 +85,12 @@ const Admin = () => {
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="products" className="space-y-6">
+        <Tabs defaultValue="stats" className="space-y-6">
           <TabsList className="w-full justify-start">
+            <TabsTrigger value="stats" className="gap-2">
+              <BarChart3 className="w-4 h-4" />
+              الإحصائيات
+            </TabsTrigger>
             <TabsTrigger value="products" className="gap-2">
               <Package className="w-4 h-4" />
               Products
@@ -100,6 +105,9 @@ const Admin = () => {
               )}
             </TabsTrigger>
           </TabsList>
+          <TabsContent value="stats">
+            <SalesStats />
+          </TabsContent>
           <TabsContent value="products">
             <ProductList />
           </TabsContent>
