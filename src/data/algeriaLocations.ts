@@ -11,6 +11,12 @@ export interface Baladiya {
   nameAr: string;
 }
 
+export interface DeliveryPrice {
+  wilayaId: string;
+  homeDelivery: number;
+  deskDelivery: number;
+}
+
 export const wilayas: Wilaya[] = [
   { id: '01', name: 'Adrar', nameAr: 'أدرار' },
   { id: '02', name: 'Chlef', nameAr: 'الشلف' },
@@ -18,6 +24,18 @@ export const wilayas: Wilaya[] = [
   { id: '04', name: 'Oum El Bouaghi', nameAr: 'أم البواقي' },
   { id: '05', name: 'Batna', nameAr: 'باتنة' },
 ];
+
+export const deliveryPrices: DeliveryPrice[] = [
+  { wilayaId: '01', homeDelivery: 1200, deskDelivery: 800 },
+  { wilayaId: '02', homeDelivery: 600, deskDelivery: 400 },
+  { wilayaId: '03', homeDelivery: 900, deskDelivery: 600 },
+  { wilayaId: '04', homeDelivery: 700, deskDelivery: 500 },
+  { wilayaId: '05', homeDelivery: 650, deskDelivery: 450 },
+];
+
+export const getDeliveryPrice = (wilayaId: string): DeliveryPrice | undefined => {
+  return deliveryPrices.find(d => d.wilayaId === wilayaId);
+};
 
 export const baladiyas: Baladiya[] = [
   // Adrar (01)

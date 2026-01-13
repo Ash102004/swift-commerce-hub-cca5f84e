@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/select';
 import { Minus, Plus, Trash2, ShoppingBag, Package, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
-import { wilayas, getBaladiyas } from '@/data/algeriaLocations';
+import { wilayas, getBaladiyas, getDeliveryPrice } from '@/data/algeriaLocations';
 
 const Cart = () => {
   const { items, updateQuantity, removeFromCart, clearCart, total } = useCart();
@@ -29,6 +29,9 @@ const Cart = () => {
   });
 
   const availableBaladiyas = customerInfo.wilaya ? getBaladiyas(customerInfo.wilaya) : [];
+  const deliveryPrice = customerInfo.wilaya ? getDeliveryPrice(customerInfo.wilaya) : null;
+  const deliveryCost = deliveryPrice?.homeDelivery || 0;
+  const grandTotal = total + deliveryCost;
 
   const handlePlaceOrder = (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,7 +50,7 @@ const Cart = () => {
       customerName: customerInfo.name,
       customerPhone: customerInfo.phone,
       customerAddress: fullAddress,
-      total: total,
+      total: grandTotal,
       status: 'pending',
     });
 
@@ -238,14 +241,24 @@ const Cart = () => {
                   </div>
                 ))}
               </div>
-              <div className="border-t border-border pt-4">
-                <div className="flex justify-between items-center mb-6">
-                  <span className="font-medium">Total</span>
-                  <span className="text-2xl font-display font-semibold text-primary">${total.toFixed(2)}</span>
+              <div className="border-t border-border pt-4 space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">المجموع الفرعي</span>
+                  <span>{total.toFixed(2)} دج</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">تكلفة التوصيل</span>
+                  <span className={deliveryCost > 0 ? 'text-foreground' : 'text-muted-foreground'}>
+                    {deliveryCost > 0 ? `${deliveryCost} دج` : 'اختر الولاية'}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center pt-2 border-t border-border">
+                  <span className="font-medium">المجموع الكلي</span>
+                  <span className="text-2xl font-display font-semibold text-primary">{grandTotal.toFixed(2)} دج</span>
                 </div>
                 {!isCheckout && (
-                  <Button className="w-full btn-primary-shadow" onClick={() => setIsCheckout(true)}>
-                    Proceed to Checkout
+                  <Button className="w-full btn-primary-shadow mt-4" onClick={() => setIsCheckout(true)}>
+                    متابعة الطلب
                   </Button>
                 )}
               </div>
