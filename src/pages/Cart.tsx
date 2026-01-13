@@ -16,11 +16,15 @@ import {
 import { Minus, Plus, Trash2, ShoppingBag, Package, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { wilayas, getBaladiyas, getDeliveryPrice } from '@/data/algeriaLocations';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+
+type DeliveryType = 'home' | 'desk';
 
 const Cart = () => {
   const { items, updateQuantity, removeFromCart, clearCart, total } = useCart();
   const { addOrder } = useStore();
   const [isCheckout, setIsCheckout] = useState(false);
+  const [deliveryType, setDeliveryType] = useState<DeliveryType>('home');
   const [customerInfo, setCustomerInfo] = useState({
     name: '',
     phone: '',
@@ -30,7 +34,9 @@ const Cart = () => {
 
   const availableBaladiyas = customerInfo.wilaya ? getBaladiyas(customerInfo.wilaya) : [];
   const deliveryPrice = customerInfo.wilaya ? getDeliveryPrice(customerInfo.wilaya) : null;
-  const deliveryCost = deliveryPrice?.homeDelivery || 0;
+  const deliveryCost = deliveryPrice 
+    ? (deliveryType === 'home' ? deliveryPrice.homeDelivery : deliveryPrice.deskDelivery) 
+    : 0;
   const grandTotal = total + deliveryCost;
 
   const handlePlaceOrder = (e: React.FormEvent) => {
@@ -214,6 +220,37 @@ const Cart = () => {
                       </SelectContent>
                     </Select>
                   </div>
+                  
+                  {/* Delivery Type Selection */}
+                  {customerInfo.wilaya && deliveryPrice && (
+                    <div className="space-y-3">
+                      <Label>نوع التوصيل *</Label>
+                      <RadioGroup 
+                        value={deliveryType} 
+                        onValueChange={(value) => setDeliveryType(value as DeliveryType)}
+                        className="space-y-3"
+                      >
+                        <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors cursor-pointer">
+                          <div className="flex items-center gap-3">
+                            <RadioGroupItem value="home" id="home" />
+                            <Label htmlFor="home" className="cursor-pointer font-normal">
+                              توصيل للبيت
+                            </Label>
+                          </div>
+                          <span className="font-semibold text-primary">{deliveryPrice.homeDelivery} دج</span>
+                        </div>
+                        <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors cursor-pointer">
+                          <div className="flex items-center gap-3">
+                            <RadioGroupItem value="desk" id="desk" />
+                            <Label htmlFor="desk" className="cursor-pointer font-normal">
+                              توصيل للمكتب
+                            </Label>
+                          </div>
+                          <span className="font-semibold text-primary">{deliveryPrice.deskDelivery} دج</span>
+                        </div>
+                      </RadioGroup>
+                    </div>
+                  )}
                 </div>
                 <div className="flex gap-3 pt-4">
                   <Button type="button" variant="outline" onClick={() => setIsCheckout(false)}>
