@@ -25,4 +25,19 @@ export interface Order {
   total: number;
   status: 'pending' | 'confirmed' | 'shipped' | 'delivered';
   createdAt: string;
+  couponCode?: string;
+  discount?: number;
+}
+
+export interface Coupon {
+  id: string;
+  code: string;
+  type: 'percentage' | 'fixed';
+  value: number;
+  minOrder: number;
+  maxUses: number;
+  usedCount: number;
+  isActive: boolean;
+  expiresAt: string | null;
+  createdAt: string;
 }

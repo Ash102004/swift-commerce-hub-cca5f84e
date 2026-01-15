@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Product, Order } from '@/types';
+import { Product, Order, Coupon } from '@/types';
 
 const defaultProducts: Product[] = [
   {
@@ -43,11 +43,17 @@ const defaultProducts: Product[] = [
 interface StoreContextType {
   products: Product[];
   orders: Order[];
+  coupons: Coupon[];
   addProduct: (product: Omit<Product, 'id' | 'createdAt'>) => void;
   updateProduct: (id: string, product: Partial<Product>) => void;
   deleteProduct: (id: string) => void;
   addOrder: (order: Omit<Order, 'id' | 'createdAt'>) => void;
   updateOrderStatus: (id: string, status: Order['status']) => void;
+  addCoupon: (coupon: Omit<Coupon, 'id' | 'createdAt' | 'usedCount'>) => void;
+  updateCoupon: (id: string, coupon: Partial<Coupon>) => void;
+  deleteCoupon: (id: string) => void;
+  validateCoupon: (code: string, orderTotal: number) => { valid: boolean; coupon?: Coupon; error?: string };
+  useCoupon: (code: string) => void;
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -63,6 +69,11 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     return saved ? JSON.parse(saved) : [];
   });
 
+  const [coupons, setCoupons] = useState<Coupon[]>(() => {
+    const saved = localStorage.getItem('coupons');
+    return saved ? JSON.parse(saved) : [];
+  });
+
   useEffect(() => {
     localStorage.setItem('products', JSON.stringify(products));
   }, [products]);
@@ -70,6 +81,10 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     localStorage.setItem('orders', JSON.stringify(orders));
   }, [orders]);
+
+  useEffect(() => {
+    localStorage.setItem('coupons', JSON.stringify(coupons));
+  }, [coupons]);
 
   const addProduct = (product: Omit<Product, 'id' | 'createdAt'>) => {
     const newProduct: Product = {
@@ -105,16 +120,78 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     );
   };
 
+  const addCoupon = (coupon: Omit<Coupon, 'id' | 'createdAt' | 'usedCount'>) => {
+    const newCoupon: Coupon = {
+      ...coupon,
+      id: Date.now().toString(),
+      usedCount: 0,
+      createdAt: new Date().toISOString(),
+    };
+    setCoupons(prev => [...prev, newCoupon]);
+  };
+
+  const updateCoupon = (id: string, updates: Partial<Coupon>) => {
+    setCoupons(prev =>
+      prev.map(c => (c.id === id ? { ...c, ...updates } : c))
+    );
+  };
+
+  const deleteCoupon = (id: string) => {
+    setCoupons(prev => prev.filter(c => c.id !== id));
+  };
+
+  const validateCoupon = (code: string, orderTotal: number): { valid: boolean; coupon?: Coupon; error?: string } => {
+    const coupon = coupons.find(c => c.code.toUpperCase() === code.toUpperCase());
+    
+    if (!coupon) {
+      return { valid: false, error: 'كود الخصم غير موجود' };
+    }
+    
+    if (!coupon.isActive) {
+      return { valid: false, error: 'كود الخصم غير فعال' };
+    }
+    
+    if (coupon.expiresAt && new Date(coupon.expiresAt) < new Date()) {
+      return { valid: false, error: 'كود الخصم منتهي الصلاحية' };
+    }
+    
+    if (coupon.maxUses > 0 && coupon.usedCount >= coupon.maxUses) {
+      return { valid: false, error: 'تم استنفاد عدد مرات استخدام الكود' };
+    }
+    
+    if (orderTotal < coupon.minOrder) {
+      return { valid: false, error: `الحد الأدنى للطلب هو ${coupon.minOrder} دج` };
+    }
+    
+    return { valid: true, coupon };
+  };
+
+  const useCoupon = (code: string) => {
+    setCoupons(prev =>
+      prev.map(c => 
+        c.code.toUpperCase() === code.toUpperCase() 
+          ? { ...c, usedCount: c.usedCount + 1 } 
+          : c
+      )
+    );
+  };
+
   return (
     <StoreContext.Provider
       value={{
         products,
         orders,
+        coupons,
         addProduct,
         updateProduct,
         deleteProduct,
         addOrder,
         updateOrderStatus,
+        addCoupon,
+        updateCoupon,
+        deleteCoupon,
+        validateCoupon,
+        useCoupon,
       }}
     >
       {children}

@@ -5,8 +5,9 @@ import { Button } from '@/components/ui/button';
 import ProductList from '@/components/admin/ProductList';
 import OrderList from '@/components/admin/OrderList';
 import SalesStats from '@/components/admin/SalesStats';
+import CouponManager from '@/components/admin/CouponManager';
 import { useStore } from '@/contexts/StoreContext';
-import { Package, ShoppingCart, ArrowLeft, TrendingUp, Box, DollarSign, BarChart3 } from 'lucide-react';
+import { Package, ShoppingCart, ArrowLeft, TrendingUp, Box, DollarSign, BarChart3, Ticket } from 'lucide-react';
 
 const Admin = () => {
   const { products, orders } = useStore();
@@ -86,23 +87,27 @@ const Admin = () => {
 
         {/* Tabs */}
         <Tabs defaultValue="stats" className="space-y-6">
-          <TabsList className="w-full justify-start">
+          <TabsList className="w-full justify-start flex-wrap">
             <TabsTrigger value="stats" className="gap-2">
               <BarChart3 className="w-4 h-4" />
               الإحصائيات
             </TabsTrigger>
             <TabsTrigger value="products" className="gap-2">
               <Package className="w-4 h-4" />
-              Products
+              المنتجات
             </TabsTrigger>
             <TabsTrigger value="orders" className="gap-2">
               <ShoppingCart className="w-4 h-4" />
-              Orders
+              الطلبات
               {pendingOrders > 0 && (
                 <span className="ml-1 bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full">
                   {pendingOrders}
                 </span>
               )}
+            </TabsTrigger>
+            <TabsTrigger value="coupons" className="gap-2">
+              <Ticket className="w-4 h-4" />
+              الكوبونات
             </TabsTrigger>
           </TabsList>
           <TabsContent value="stats">
@@ -113,6 +118,9 @@ const Admin = () => {
           </TabsContent>
           <TabsContent value="orders">
             <OrderList />
+          </TabsContent>
+          <TabsContent value="coupons">
+            <CouponManager />
           </TabsContent>
         </Tabs>
       </main>

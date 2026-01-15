@@ -13,18 +13,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Minus, Plus, Trash2, ShoppingBag, Package, ArrowLeft } from 'lucide-react';
+import { Minus, Plus, Trash2, ShoppingBag, Package, ArrowLeft, Ticket, X, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { wilayas, getBaladiyas, getDeliveryPrice } from '@/data/algeriaLocations';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Coupon } from '@/types';
 
 type DeliveryType = 'home' | 'desk';
 
 const Cart = () => {
   const { items, updateQuantity, removeFromCart, clearCart, total } = useCart();
-  const { addOrder } = useStore();
+  const { addOrder, validateCoupon, useCoupon } = useStore();
   const [isCheckout, setIsCheckout] = useState(false);
   const [deliveryType, setDeliveryType] = useState<DeliveryType>('home');
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
+  const [couponError, setCouponError] = useState('');
   const [customerInfo, setCustomerInfo] = useState({
     name: '',
     phone: '',
@@ -37,7 +41,38 @@ const Cart = () => {
   const deliveryCost = deliveryPrice 
     ? (deliveryType === 'home' ? deliveryPrice.homeDelivery : deliveryPrice.deskDelivery) 
     : 0;
-  const grandTotal = total + deliveryCost;
+
+  // Calculate discount
+  const discount = appliedCoupon
+    ? appliedCoupon.type === 'percentage'
+      ? (total * appliedCoupon.value) / 100
+      : Math.min(appliedCoupon.value, total)
+    : 0;
+
+  const grandTotal = total - discount + deliveryCost;
+
+  const handleApplyCoupon = () => {
+    if (!couponCode.trim()) {
+      setCouponError('يرجى إدخال كود الخصم');
+      return;
+    }
+
+    const result = validateCoupon(couponCode, total);
+    if (result.valid && result.coupon) {
+      setAppliedCoupon(result.coupon);
+      setCouponError('');
+      toast.success('تم تطبيق كود الخصم بنجاح!');
+    } else {
+      setCouponError(result.error || 'كود غير صالح');
+      setAppliedCoupon(null);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCode('');
+    setCouponError('');
+  };
 
   const handlePlaceOrder = (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,6 +86,11 @@ const Cart = () => {
     const selectedBaladiya = availableBaladiyas.find(b => b.id === customerInfo.baladiya);
     const fullAddress = `${selectedBaladiya?.nameAr || ''}, ${selectedWilaya?.nameAr || ''}`;
 
+    // Use coupon if applied
+    if (appliedCoupon) {
+      useCoupon(appliedCoupon.code);
+    }
+
     addOrder({
       items: items,
       customerName: customerInfo.name,
@@ -58,11 +98,15 @@ const Cart = () => {
       customerAddress: fullAddress,
       total: grandTotal,
       status: 'pending',
+      couponCode: appliedCoupon?.code,
+      discount: discount,
     });
 
     clearCart();
     setIsCheckout(false);
     setCustomerInfo({ name: '', phone: '', wilaya: '', baladiya: '' });
+    setAppliedCoupon(null);
+    setCouponCode('');
     toast.success('تم تأكيد الطلب بنجاح! سنتواصل معك قريباً.');
   };
 
@@ -278,11 +322,66 @@ const Cart = () => {
                   </div>
                 ))}
               </div>
+              
+              {/* Coupon Section */}
+              <div className="border-t border-border pt-4 space-y-3">
+                {!appliedCoupon ? (
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-2">
+                      <Ticket className="w-4 h-4" />
+                      كود الخصم
+                    </Label>
+                    <div className="flex gap-2">
+                      <Input
+                        value={couponCode}
+                        onChange={e => {
+                          setCouponCode(e.target.value.toUpperCase());
+                          setCouponError('');
+                        }}
+                        placeholder="أدخل الكود"
+                        className="font-mono"
+                      />
+                      <Button type="button" variant="outline" onClick={handleApplyCoupon}>
+                        تطبيق
+                      </Button>
+                    </div>
+                    {couponError && (
+                      <p className="text-sm text-destructive">{couponError}</p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <Check className="w-4 h-4 text-green-600" />
+                      <span className="font-mono font-medium">{appliedCoupon.code}</span>
+                      <span className="text-sm text-muted-foreground">
+                        (-{appliedCoupon.type === 'percentage' ? `${appliedCoupon.value}%` : `${appliedCoupon.value} دج`})
+                      </span>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6"
+                      onClick={handleRemoveCoupon}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                )}
+              </div>
+
               <div className="border-t border-border pt-4 space-y-3">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">المجموع الفرعي</span>
                   <span>{total.toFixed(2)} دج</span>
                 </div>
+                {discount > 0 && (
+                  <div className="flex justify-between text-sm text-green-600">
+                    <span>الخصم</span>
+                    <span>-{discount.toFixed(2)} دج</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">تكلفة التوصيل</span>
                   <span className={deliveryCost > 0 ? 'text-foreground' : 'text-muted-foreground'}>
