@@ -9,8 +9,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Package, Clock, Truck, CheckCircle } from 'lucide-react';
+import { Package, Clock, Truck, CheckCircle, Download } from 'lucide-react';
 import { format } from 'date-fns';
+import { exportOrdersToExcel } from '@/utils/exportToExcel';
 
 const statusConfig: Record<Order['status'], { label: string; icon: any; variant: 'default' | 'secondary' | 'outline' | 'destructive' }> = {
   pending: { label: 'Pending', icon: Clock, variant: 'secondary' },
@@ -34,6 +35,16 @@ const OrderList = () => {
 
   return (
     <div className="space-y-4">
+      <div className="flex justify-end mb-4">
+        <Button
+          variant="outline"
+          onClick={() => exportOrdersToExcel(orders)}
+          className="gap-2"
+        >
+          <Download className="w-4 h-4" />
+          تصدير إلى Excel
+        </Button>
+      </div>
       {orders.map(order => {
         const status = statusConfig[order.status];
         const StatusIcon = status.icon;

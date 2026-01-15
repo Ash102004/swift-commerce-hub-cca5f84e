@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { useStore } from '@/contexts/StoreContext';
 import { Order } from '@/types';
 import {
@@ -16,7 +17,8 @@ import {
   LineChart,
   Line,
 } from 'recharts';
-import { TrendingUp, Package, Users, Calendar } from 'lucide-react';
+import { TrendingUp, Package, Users, Calendar, Download } from 'lucide-react';
+import { exportStatsToExcel } from '@/utils/exportToExcel';
 
 const statusColors = {
   pending: '#eab308',
@@ -130,6 +132,18 @@ const SalesStats = () => {
 
   return (
     <div className="space-y-6">
+      {/* Export Button */}
+      <div className="flex justify-end">
+        <Button
+          variant="outline"
+          onClick={() => exportStatsToExcel(orders, topProducts, salesByDay)}
+          className="gap-2"
+        >
+          <Download className="w-4 h-4" />
+          تصدير الإحصائيات إلى Excel
+        </Button>
+      </div>
+
       {/* Quick Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
