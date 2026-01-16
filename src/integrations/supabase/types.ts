@@ -14,7 +14,147 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      coupons: {
+        Row: {
+          code: string
+          created_at: string
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          max_uses: number | null
+          min_order: number | null
+          type: string
+          used_count: number
+          value: number
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          min_order?: number | null
+          type: string
+          used_count?: number
+          value: number
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          min_order?: number | null
+          type?: string
+          used_count?: number
+          value?: number
+        }
+        Relationships: []
+      }
+      orders: {
+        Row: {
+          address: string
+          commune: string
+          coupon_code: string | null
+          created_at: string
+          customer_email: string | null
+          customer_name: string
+          customer_phone: string
+          discount: number
+          id: string
+          items: Json
+          notes: string | null
+          shipping_cost: number
+          status: string
+          subtotal: number
+          total: number
+          tracking_code: string | null
+          updated_at: string
+          wilaya: string
+        }
+        Insert: {
+          address: string
+          commune: string
+          coupon_code?: string | null
+          created_at?: string
+          customer_email?: string | null
+          customer_name: string
+          customer_phone: string
+          discount?: number
+          id?: string
+          items?: Json
+          notes?: string | null
+          shipping_cost?: number
+          status?: string
+          subtotal: number
+          total: number
+          tracking_code?: string | null
+          updated_at?: string
+          wilaya: string
+        }
+        Update: {
+          address?: string
+          commune?: string
+          coupon_code?: string | null
+          created_at?: string
+          customer_email?: string | null
+          customer_name?: string
+          customer_phone?: string
+          discount?: number
+          id?: string
+          items?: Json
+          notes?: string | null
+          shipping_cost?: number
+          status?: string
+          subtotal?: number
+          total?: number
+          tracking_code?: string | null
+          updated_at?: string
+          wilaya?: string
+        }
+        Relationships: []
+      }
+      products: {
+        Row: {
+          category: string | null
+          created_at: string
+          description: string | null
+          featured: boolean | null
+          id: string
+          images: string[] | null
+          name: string
+          price: number
+          stock: number
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          featured?: boolean | null
+          id?: string
+          images?: string[] | null
+          name: string
+          price: number
+          stock?: number
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          featured?: boolean | null
+          id?: string
+          images?: string[] | null
+          name?: string
+          price?: number
+          stock?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
