@@ -1,6 +1,4 @@
 import { useState } from 'react';
-import { useStore } from '@/contexts/StoreContext';
-import { Coupon } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -20,14 +18,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus, Pencil, Trash2, Ticket, Copy, Check } from 'lucide-react';
+import { Plus, Pencil, Trash2, Ticket, Copy, Check, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { useCoupons, useAddCoupon, useUpdateCoupon, useDeleteCoupon, DbCoupon } from '@/hooks/useCoupons';
 
 const CouponManager = () => {
-  const { coupons, addCoupon, updateCoupon, deleteCoupon } = useStore();
+  const { data: coupons = [], isLoading } = useCoupons();
+  const addCoupon = useAddCoupon();
+  const updateCoupon = useUpdateCoupon();
+  const deleteCoupon = useDeleteCoupon();
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingCoupon, setEditingCoupon] = useState<Coupon | null>(null);
+  const [editingCoupon, setEditingCoupon] = useState<DbCoupon | null>(null);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     code: '',
@@ -52,17 +55,17 @@ const CouponManager = () => {
     setEditingCoupon(null);
   };
 
-  const handleOpenDialog = (coupon?: Coupon) => {
+  const handleOpenDialog = (coupon?: DbCoupon) => {
     if (coupon) {
       setEditingCoupon(coupon);
       setFormData({
         code: coupon.code,
-        type: coupon.type,
+        type: coupon.type as 'percentage' | 'fixed',
         value: coupon.value.toString(),
-        minOrder: coupon.minOrder.toString(),
-        maxUses: coupon.maxUses.toString(),
-        isActive: coupon.isActive,
-        expiresAt: coupon.expiresAt ? coupon.expiresAt.split('T')[0] : '',
+        minOrder: (coupon.min_order || 0).toString(),
+        maxUses: (coupon.max_uses || 0).toString(),
+        isActive: coupon.is_active,
+        expiresAt: coupon.expires_at ? coupon.expires_at.split('T')[0] : '',
       });
     } else {
       resetForm();
@@ -70,7 +73,7 @@ const CouponManager = () => {
     setIsDialogOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!formData.code.trim()) {
@@ -88,38 +91,43 @@ const CouponManager = () => {
       return;
     }
 
-    const couponData = {
-      code: formData.code.toUpperCase().trim(),
-      type: formData.type,
-      value: parseFloat(formData.value),
-      minOrder: parseFloat(formData.minOrder) || 0,
-      maxUses: parseInt(formData.maxUses) || 0,
-      isActive: formData.isActive,
-      expiresAt: formData.expiresAt ? new Date(formData.expiresAt).toISOString() : null,
-    };
+    try {
+      const couponData = {
+        code: formData.code.toUpperCase().trim(),
+        type: formData.type,
+        value: parseFloat(formData.value),
+        min_order: parseFloat(formData.minOrder) || 0,
+        max_uses: parseInt(formData.maxUses) || null,
+        is_active: formData.isActive,
+        expires_at: formData.expiresAt ? new Date(formData.expiresAt).toISOString() : null,
+      };
 
-    if (editingCoupon) {
-      updateCoupon(editingCoupon.id, couponData);
-      toast.success('تم تحديث الكوبون بنجاح');
-    } else {
-      // Check for duplicate code
-      const existingCoupon = coupons.find(c => c.code.toUpperCase() === couponData.code);
-      if (existingCoupon) {
-        toast.error('هذا الكود موجود بالفعل');
-        return;
+      if (editingCoupon) {
+        await updateCoupon.mutateAsync({ id: editingCoupon.id, ...couponData });
+      } else {
+        // Check for duplicate code
+        const existingCoupon = coupons.find(c => c.code.toUpperCase() === couponData.code);
+        if (existingCoupon) {
+          toast.error('هذا الكود موجود بالفعل');
+          return;
+        }
+        await addCoupon.mutateAsync(couponData);
       }
-      addCoupon(couponData);
-      toast.success('تم إنشاء الكوبون بنجاح');
-    }
 
-    setIsDialogOpen(false);
-    resetForm();
+      setIsDialogOpen(false);
+      resetForm();
+    } catch (error) {
+      // Error handled in hooks
+    }
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (confirm('هل أنت متأكد من حذف هذا الكوبون؟')) {
-      deleteCoupon(id);
-      toast.success('تم حذف الكوبون');
+      try {
+        await deleteCoupon.mutateAsync(id);
+      } catch (error) {
+        // Error handled in hook
+      }
     }
   };
 
@@ -139,6 +147,16 @@ const CouponManager = () => {
     setFormData(prev => ({ ...prev, code }));
   };
 
+  const isSubmitting = addCoupon.isPending || updateCoupon.isPending;
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -149,7 +167,7 @@ const CouponManager = () => {
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button onClick={() => handleOpenDialog()} className="gap-2">
+            <Button onClick={() => handleOpenDialog()} className="gap-2 btn-fire">
               <Plus className="w-4 h-4" />
               إضافة كوبون
             </Button>
@@ -249,10 +267,11 @@ const CouponManager = () => {
               </div>
 
               <div className="flex gap-3 pt-4">
-                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} className="flex-1">
+                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} className="flex-1" disabled={isSubmitting}>
                   إلغاء
                 </Button>
-                <Button type="submit" className="flex-1">
+                <Button type="submit" className="flex-1 btn-fire" disabled={isSubmitting}>
+                  {isSubmitting && <Loader2 className="w-4 h-4 ml-2 animate-spin" />}
                   {editingCoupon ? 'حفظ التغييرات' : 'إنشاء الكوبون'}
                 </Button>
               </div>
@@ -271,9 +290,9 @@ const CouponManager = () => {
       ) : (
         <div className="grid gap-4">
           {coupons.map(coupon => {
-            const isExpired = coupon.expiresAt && new Date(coupon.expiresAt) < new Date();
-            const isMaxedOut = coupon.maxUses > 0 && coupon.usedCount >= coupon.maxUses;
-            const isInactive = !coupon.isActive || isExpired || isMaxedOut;
+            const isExpired = coupon.expires_at && new Date(coupon.expires_at) < new Date();
+            const isMaxedOut = coupon.max_uses && coupon.max_uses > 0 && coupon.used_count >= coupon.max_uses;
+            const isInactive = !coupon.is_active || isExpired || isMaxedOut;
 
             return (
               <div
@@ -302,27 +321,27 @@ const CouponManager = () => {
                         </Button>
                       </div>
                       <div className="flex flex-wrap items-center gap-2">
-                        <Badge variant={coupon.isActive && !isExpired && !isMaxedOut ? 'default' : 'secondary'}>
+                        <Badge variant={coupon.is_active && !isExpired && !isMaxedOut ? 'default' : 'secondary'}>
                           {coupon.type === 'percentage' ? `${coupon.value}%` : `${coupon.value} دج`}
                         </Badge>
-                        {coupon.minOrder > 0 && (
-                          <Badge variant="outline">الحد الأدنى: {coupon.minOrder} دج</Badge>
+                        {coupon.min_order && coupon.min_order > 0 && (
+                          <Badge variant="outline">الحد الأدنى: {coupon.min_order} دج</Badge>
                         )}
-                        {coupon.maxUses > 0 && (
+                        {coupon.max_uses && coupon.max_uses > 0 && (
                           <Badge variant="outline">
-                            {coupon.usedCount}/{coupon.maxUses} استخدام
+                            {coupon.used_count}/{coupon.max_uses} استخدام
                           </Badge>
                         )}
                         {isExpired && <Badge variant="destructive">منتهي</Badge>}
                         {isMaxedOut && <Badge variant="destructive">مستنفد</Badge>}
-                        {!coupon.isActive && <Badge variant="secondary">معطل</Badge>}
+                        {!coupon.is_active && <Badge variant="secondary">معطل</Badge>}
                       </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    {coupon.expiresAt && !isExpired && (
+                    {coupon.expires_at && !isExpired && (
                       <span className="text-xs text-muted-foreground">
-                        ينتهي: {format(new Date(coupon.expiresAt), 'dd/MM/yyyy')}
+                        ينتهي: {format(new Date(coupon.expires_at), 'dd/MM/yyyy')}
                       </span>
                     )}
                     <Button

@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useStore } from '@/contexts/StoreContext';
-import { Order } from '@/types';
+import { useOrders, DbOrder } from '@/hooks/useOrders';
+import { useProducts } from '@/hooks/useProducts';
 import {
   BarChart,
   Bar,
@@ -17,7 +17,7 @@ import {
   LineChart,
   Line,
 } from 'recharts';
-import { TrendingUp, Package, Users, Calendar, Download } from 'lucide-react';
+import { TrendingUp, Package, Users, Calendar, Download, Loader2 } from 'lucide-react';
 import { exportStatsToExcel } from '@/utils/exportToExcel';
 
 const statusColors = {
@@ -35,7 +35,10 @@ const statusLabels = {
 };
 
 const SalesStats = () => {
-  const { orders, products } = useStore();
+  const { data: orders = [], isLoading: ordersLoading } = useOrders();
+  const { data: products = [], isLoading: productsLoading } = useProducts();
+
+  const isLoading = ordersLoading || productsLoading;
 
   // Calculate order status distribution
   const orderStatusData = useMemo(() => {
@@ -56,17 +59,17 @@ const SalesStats = () => {
     const productSales: Record<string, { name: string; quantity: number; revenue: number }> = {};
 
     orders.forEach((order) => {
-      order.items.forEach((item) => {
-        const id = item.product.id;
+      (order.items as any[]).forEach((item) => {
+        const id = item.product?.id || item.productId;
         if (!productSales[id]) {
           productSales[id] = {
-            name: item.product.nameAr || item.product.name,
+            name: item.product?.name || 'منتج',
             quantity: 0,
             revenue: 0,
           };
         }
         productSales[id].quantity += item.quantity;
-        productSales[id].revenue += item.product.price * item.quantity;
+        productSales[id].revenue += (item.product?.price || 0) * item.quantity;
       });
     });
 
@@ -86,7 +89,7 @@ const SalesStats = () => {
       const dateStr = date.toISOString().split('T')[0];
       
       const dayOrders = orders.filter((order) => {
-        const orderDate = new Date(order.createdAt).toISOString().split('T')[0];
+        const orderDate = new Date(order.created_at).toISOString().split('T')[0];
         return orderDate === dateStr;
       });
 
@@ -104,7 +107,7 @@ const SalesStats = () => {
   const stats = useMemo(() => {
     const totalRevenue = orders.reduce((sum, o) => sum + o.total, 0);
     const avgOrderValue = orders.length > 0 ? totalRevenue / orders.length : 0;
-    const uniqueCustomers = new Set(orders.map((o) => o.customerPhone)).size;
+    const uniqueCustomers = new Set(orders.map((o) => o.customer_phone)).size;
     const deliveredOrders = orders.filter((o) => o.status === 'delivered').length;
     const deliveryRate = orders.length > 0 ? (deliveredOrders / orders.length) * 100 : 0;
 
@@ -115,6 +118,14 @@ const SalesStats = () => {
       deliveryRate,
     };
   }, [orders]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   if (orders.length === 0) {
     return (
@@ -136,7 +147,7 @@ const SalesStats = () => {
       <div className="flex justify-end">
         <Button
           variant="outline"
-          onClick={() => exportStatsToExcel(orders, topProducts, salesByDay)}
+          onClick={() => exportStatsToExcel(orders as any, topProducts, salesByDay)}
           className="gap-2"
         >
           <Download className="w-4 h-4" />

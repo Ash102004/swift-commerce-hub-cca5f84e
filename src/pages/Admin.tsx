@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -6,14 +5,18 @@ import ProductList from '@/components/admin/ProductList';
 import OrderList from '@/components/admin/OrderList';
 import SalesStats from '@/components/admin/SalesStats';
 import CouponManager from '@/components/admin/CouponManager';
-import { useStore } from '@/contexts/StoreContext';
-import { Package, ShoppingCart, ArrowLeft, TrendingUp, Box, DollarSign, BarChart3, Ticket } from 'lucide-react';
+import { useProducts } from '@/hooks/useProducts';
+import { useOrders } from '@/hooks/useOrders';
+import { Package, ShoppingCart, ArrowLeft, TrendingUp, Box, DollarSign, BarChart3, Ticket, Loader2 } from 'lucide-react';
 
 const Admin = () => {
-  const { products, orders } = useStore();
+  const { data: products = [], isLoading: productsLoading } = useProducts();
+  const { data: orders = [], isLoading: ordersLoading } = useOrders();
   
   const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
   const pendingOrders = orders.filter(o => o.status === 'pending').length;
+
+  const isLoading = productsLoading || ordersLoading;
 
   return (
     <div className="min-h-screen bg-background">
@@ -27,10 +30,10 @@ const Admin = () => {
                   <ArrowLeft className="w-5 h-5" />
                 </Link>
               </Button>
-              <h1 className="font-display text-xl font-semibold">Admin Dashboard</h1>
+              <h1 className="font-display text-xl font-semibold gradient-text">لوحة التحكم</h1>
             </div>
             <Button asChild variant="outline" size="sm">
-              <Link to="/products">View Store</Link>
+              <Link to="/products">عرض المتجر</Link>
             </Button>
           </div>
         </div>
@@ -45,8 +48,10 @@ const Admin = () => {
                 <Box className="w-6 h-6 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Total Products</p>
-                <p className="text-2xl font-display font-semibold">{products.length}</p>
+                <p className="text-sm text-muted-foreground">إجمالي المنتجات</p>
+                <p className="text-2xl font-display font-semibold">
+                  {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : products.length}
+                </p>
               </div>
             </div>
           </div>
@@ -56,8 +61,10 @@ const Admin = () => {
                 <ShoppingCart className="w-6 h-6 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Total Orders</p>
-                <p className="text-2xl font-display font-semibold">{orders.length}</p>
+                <p className="text-sm text-muted-foreground">إجمالي الطلبات</p>
+                <p className="text-2xl font-display font-semibold">
+                  {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : orders.length}
+                </p>
               </div>
             </div>
           </div>
@@ -67,8 +74,10 @@ const Admin = () => {
                 <TrendingUp className="w-6 h-6 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Pending Orders</p>
-                <p className="text-2xl font-display font-semibold">{pendingOrders}</p>
+                <p className="text-sm text-muted-foreground">الطلبات المعلقة</p>
+                <p className="text-2xl font-display font-semibold">
+                  {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : pendingOrders}
+                </p>
               </div>
             </div>
           </div>
@@ -78,8 +87,10 @@ const Admin = () => {
                 <DollarSign className="w-6 h-6 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Total Revenue</p>
-                <p className="text-2xl font-display font-semibold">${totalRevenue.toFixed(2)}</p>
+                <p className="text-sm text-muted-foreground">إجمالي الإيرادات</p>
+                <p className="text-2xl font-display font-semibold">
+                  {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : `${totalRevenue.toFixed(2)} دج`}
+                </p>
               </div>
             </div>
           </div>

@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
 import { useCart } from '@/contexts/CartContext';
-import { useStore } from '@/contexts/StoreContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,27 +12,33 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Minus, Plus, Trash2, ShoppingBag, Package, ArrowLeft, Ticket, X, Check } from 'lucide-react';
+import { Minus, Plus, Trash2, ShoppingBag, Package, ArrowLeft, Ticket, X, Check, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { wilayas, getBaladiyas, getDeliveryPrice } from '@/data/algeriaLocations';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Coupon } from '@/types';
+import { useValidateCoupon, useUseCoupon, DbCoupon } from '@/hooks/useCoupons';
+import { useCreateOrder } from '@/hooks/useOrders';
 
 type DeliveryType = 'home' | 'desk';
 
 const Cart = () => {
   const { items, updateQuantity, removeFromCart, clearCart, total } = useCart();
-  const { addOrder, validateCoupon, useCoupon } = useStore();
+  const createOrder = useCreateOrder();
+  const validateCoupon = useValidateCoupon();
+  const useCoupon = useUseCoupon();
+  
   const [isCheckout, setIsCheckout] = useState(false);
   const [deliveryType, setDeliveryType] = useState<DeliveryType>('home');
   const [couponCode, setCouponCode] = useState('');
-  const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
+  const [appliedCoupon, setAppliedCoupon] = useState<DbCoupon | null>(null);
   const [couponError, setCouponError] = useState('');
+  const [isValidating, setIsValidating] = useState(false);
   const [customerInfo, setCustomerInfo] = useState({
     name: '',
     phone: '',
     wilaya: '',
     baladiya: '',
+    address: '',
   });
 
   const availableBaladiyas = customerInfo.wilaya ? getBaladiyas(customerInfo.wilaya) : [];
@@ -51,20 +56,28 @@ const Cart = () => {
 
   const grandTotal = total - discount + deliveryCost;
 
-  const handleApplyCoupon = () => {
+  const handleApplyCoupon = async () => {
     if (!couponCode.trim()) {
       setCouponError('يرجى إدخال كود الخصم');
       return;
     }
 
-    const result = validateCoupon(couponCode, total);
-    if (result.valid && result.coupon) {
-      setAppliedCoupon(result.coupon);
-      setCouponError('');
-      toast.success('تم تطبيق كود الخصم بنجاح!');
-    } else {
-      setCouponError(result.error || 'كود غير صالح');
+    setIsValidating(true);
+    try {
+      const result = await validateCoupon.mutateAsync({ code: couponCode, orderTotal: total });
+      if ('valid' in result && result.valid && 'coupon' in result && result.coupon) {
+        setAppliedCoupon(result.coupon as DbCoupon);
+        setCouponError('');
+        toast.success('تم تطبيق كود الخصم بنجاح!');
+      } else if ('error' in result) {
+        setCouponError(result.error as string || 'كود غير صالح');
+        setAppliedCoupon(null);
+      }
+    } catch (error) {
+      setCouponError('حدث خطأ أثناء التحقق من الكود');
       setAppliedCoupon(null);
+    } finally {
+      setIsValidating(false);
     }
   };
 
@@ -74,45 +87,59 @@ const Cart = () => {
     setCouponError('');
   };
 
-  const handlePlaceOrder = (e: React.FormEvent) => {
+  const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!customerInfo.name || !customerInfo.phone || !customerInfo.wilaya || !customerInfo.baladiya) {
-      toast.error('يرجى ملء جميع الحقول');
+      toast.error('يرجى ملء جميع الحقول المطلوبة');
       return;
     }
 
     const selectedWilaya = wilayas.find(w => w.id === customerInfo.wilaya);
     const selectedBaladiya = availableBaladiyas.find(b => b.id === customerInfo.baladiya);
-    const fullAddress = `${selectedBaladiya?.nameAr || ''}, ${selectedWilaya?.nameAr || ''}`;
 
-    // Use coupon if applied
-    if (appliedCoupon) {
-      useCoupon(appliedCoupon.code);
+    try {
+      // Use coupon if applied
+      if (appliedCoupon) {
+        useCoupon.mutate(appliedCoupon.code);
+      }
+
+      await createOrder.mutateAsync({
+        customer_name: customerInfo.name,
+        customer_phone: customerInfo.phone,
+        wilaya: selectedWilaya?.nameAr || customerInfo.wilaya,
+        commune: selectedBaladiya?.nameAr || customerInfo.baladiya,
+        address: customerInfo.address || `${selectedBaladiya?.nameAr}, ${selectedWilaya?.nameAr}`,
+        items: items.map(item => ({
+          productId: item.product.id,
+          productName: item.product.name,
+          price: item.product.price,
+          quantity: item.quantity,
+          image: item.product.image,
+        })),
+        subtotal: total,
+        shipping_cost: deliveryCost,
+        discount: discount,
+        total: grandTotal,
+        coupon_code: appliedCoupon?.code || null,
+      });
+
+      clearCart();
+      setIsCheckout(false);
+      setCustomerInfo({ name: '', phone: '', wilaya: '', baladiya: '', address: '' });
+      setAppliedCoupon(null);
+      setCouponCode('');
+      toast.success('تم تأكيد الطلب بنجاح! سنتواصل معك قريباً.');
+    } catch (error) {
+      toast.error('حدث خطأ أثناء إنشاء الطلب');
     }
-
-    addOrder({
-      items: items,
-      customerName: customerInfo.name,
-      customerPhone: customerInfo.phone,
-      customerAddress: fullAddress,
-      total: grandTotal,
-      status: 'pending',
-      couponCode: appliedCoupon?.code,
-      discount: discount,
-    });
-
-    clearCart();
-    setIsCheckout(false);
-    setCustomerInfo({ name: '', phone: '', wilaya: '', baladiya: '' });
-    setAppliedCoupon(null);
-    setCouponCode('');
-    toast.success('تم تأكيد الطلب بنجاح! سنتواصل معك قريباً.');
   };
 
   const handleWilayaChange = (value: string) => {
     setCustomerInfo(prev => ({ ...prev, wilaya: value, baladiya: '' }));
   };
+
+  const isSubmitting = createOrder.isPending;
 
   if (items.length === 0 && !isCheckout) {
     return (
@@ -120,14 +147,14 @@ const Cart = () => {
         <div className="container mx-auto px-4 py-16">
           <div className="max-w-md mx-auto text-center">
             <ShoppingBag className="w-20 h-20 mx-auto text-muted-foreground/30 mb-6" />
-            <h1 className="font-display text-2xl font-semibold mb-4">Your cart is empty</h1>
+            <h1 className="font-display text-2xl font-semibold mb-4">سلة التسوق فارغة</h1>
             <p className="text-muted-foreground mb-8">
-              Looks like you haven't added any items to your cart yet.
+              يبدو أنك لم تضف أي منتجات إلى سلة التسوق بعد.
             </p>
-            <Button asChild>
+            <Button asChild className="btn-fire">
               <Link to="/products">
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                Continue Shopping
+                تابع التسوق
               </Link>
             </Button>
           </div>
@@ -139,8 +166,8 @@ const Cart = () => {
   return (
     <Layout>
       <div className="container mx-auto px-4 py-8">
-        <h1 className="font-display text-3xl md:text-4xl font-semibold mb-8">
-          {isCheckout ? 'Checkout' : 'Shopping Cart'}
+        <h1 className="font-display text-3xl md:text-4xl font-semibold mb-8 gradient-text">
+          {isCheckout ? 'إتمام الطلب' : 'سلة التسوق'}
         </h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -168,7 +195,7 @@ const Cart = () => {
                     </div>
                     <div className="flex-1 min-w-0">
                       <h3 className="font-medium truncate">{item.product.name}</h3>
-                      <p className="text-sm text-muted-foreground">${item.product.price}</p>
+                      <p className="text-sm text-muted-foreground">{item.product.price} دج</p>
                       <div className="flex items-center gap-3 mt-2">
                         <div className="flex items-center gap-2">
                           <Button
@@ -200,7 +227,7 @@ const Cart = () => {
                       </div>
                     </div>
                     <div className="text-right">
-                      <span className="font-semibold">${(item.product.price * item.quantity).toFixed(2)}</span>
+                      <span className="font-semibold text-primary">{(item.product.price * item.quantity).toFixed(2)} دج</span>
                     </div>
                   </div>
                 ))}
@@ -264,6 +291,16 @@ const Cart = () => {
                       </SelectContent>
                     </Select>
                   </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="address">العنوان التفصيلي</Label>
+                    <Input
+                      id="address"
+                      value={customerInfo.address}
+                      onChange={e => setCustomerInfo(prev => ({ ...prev, address: e.target.value }))}
+                      placeholder="أدخل عنوانك التفصيلي (اختياري)"
+                      dir="rtl"
+                    />
+                  </div>
                   
                   {/* Delivery Type Selection */}
                   {customerInfo.wilaya && deliveryPrice && (
@@ -297,10 +334,11 @@ const Cart = () => {
                   )}
                 </div>
                 <div className="flex gap-3 pt-4">
-                  <Button type="button" variant="outline" onClick={() => setIsCheckout(false)}>
+                  <Button type="button" variant="outline" onClick={() => setIsCheckout(false)} disabled={isSubmitting}>
                     العودة للسلة
                   </Button>
-                  <Button type="submit" className="flex-1">
+                  <Button type="submit" className="flex-1 btn-fire" disabled={isSubmitting}>
+                    {isSubmitting && <Loader2 className="w-4 h-4 ml-2 animate-spin" />}
                     تأكيد الطلب
                   </Button>
                 </div>
@@ -311,14 +349,14 @@ const Cart = () => {
           {/* Order Summary */}
           <div className="lg:col-span-1">
             <div className="bg-card rounded-lg p-6 card-elevated sticky top-24">
-              <h2 className="font-display text-xl font-medium mb-4">Order Summary</h2>
+              <h2 className="font-display text-xl font-medium mb-4">ملخص الطلب</h2>
               <div className="space-y-3 mb-6">
                 {items.map(item => (
                   <div key={item.product.id} className="flex justify-between text-sm">
                     <span className="text-muted-foreground">
                       {item.product.name} × {item.quantity}
                     </span>
-                    <span>${(item.product.price * item.quantity).toFixed(2)}</span>
+                    <span>{(item.product.price * item.quantity).toFixed(2)} دج</span>
                   </div>
                 ))}
               </div>
@@ -341,8 +379,8 @@ const Cart = () => {
                         placeholder="أدخل الكود"
                         className="font-mono"
                       />
-                      <Button type="button" variant="outline" onClick={handleApplyCoupon}>
-                        تطبيق
+                      <Button type="button" variant="outline" onClick={handleApplyCoupon} disabled={isValidating}>
+                        {isValidating ? <Loader2 className="w-4 h-4 animate-spin" /> : 'تطبيق'}
                       </Button>
                     </div>
                     {couponError && (
@@ -393,7 +431,7 @@ const Cart = () => {
                   <span className="text-2xl font-display font-semibold text-primary">{grandTotal.toFixed(2)} دج</span>
                 </div>
                 {!isCheckout && (
-                  <Button className="w-full btn-primary-shadow mt-4" onClick={() => setIsCheckout(true)}>
+                  <Button className="w-full btn-fire mt-4" onClick={() => setIsCheckout(true)}>
                     متابعة الطلب
                   </Button>
                 )}
