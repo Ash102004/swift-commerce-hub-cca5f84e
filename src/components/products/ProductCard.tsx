@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom';
-import { DbProduct } from '@/hooks/useProducts';
+import { ShoppingBag, Package } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
-import { Button } from '@/components/ui/button';
-import { ShoppingBag, Package, Eye, Flame } from 'lucide-react';
+import { toast } from 'sonner';
+import { DbProduct } from '@/hooks/useProducts';
 
 interface ProductCardProps {
   product: DbProduct;
@@ -10,105 +10,104 @@ interface ProductCardProps {
 
 const ProductCard = ({ product }: ProductCardProps) => {
   const { addToCart } = useCart();
-  
   const mainImage = product.images?.[0] || '';
-  const isLowStock = product.stock > 0 && product.stock < 5;
-  const isOutOfStock = product.stock === 0;
-
+  
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
-    // Convert DbProduct to legacy Product format for cart
-    addToCart({
+    const cartProduct = {
       id: product.id,
       name: product.name,
       price: product.price,
-      description: product.description || '',
+      description: product.description,
       image: mainImage,
-      category: product.category || '',
+      images: product.images,
+      category: product.category,
       stock: product.stock,
-      createdAt: product.created_at,
-    });
+      featured: product.featured,
+      created_at: product.created_at,
+    };
+    
+    addToCart(cartProduct);
+    toast.success(`تمت إضافة ${product.name} إلى السلة`);
   };
 
   return (
-    <div className="group bg-card rounded-2xl overflow-hidden card-elevated">
-      <Link to={`/product/${product.id}`} className="block">
-        {/* Image Container */}
-        <div className="aspect-square bg-muted relative overflow-hidden product-image-container">
-          {mainImage ? (
-            <img
-              src={mainImage}
-              alt={product.name}
-              className="w-full h-full object-cover"
-              loading="lazy"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted to-muted/50">
-              <Package className="w-16 h-16 text-muted-foreground/30" />
-            </div>
-          )}
-          
-          {/* Badges */}
-          <div className="absolute top-3 left-3 flex flex-col gap-2">
-            {isLowStock && (
-              <span className="badge-fire flex items-center gap-1">
-                <Flame className="w-3 h-3" />
-                آخر القطع
-              </span>
-            )}
-            {isOutOfStock && (
-              <span className="bg-secondary text-secondary-foreground px-3 py-1 rounded-full text-xs font-semibold">
-                نفذت الكمية
-              </span>
-            )}
-            {product.featured && !isLowStock && !isOutOfStock && (
-              <span className="badge-fire">مميز</span>
-            )}
+    <Link 
+      to={`/product/${product.id}`}
+      className="group block bg-card border border-border hover:border-primary/40 transition-all duration-500 hover-lift"
+    >
+      {/* Image Container */}
+      <div className="aspect-square bg-muted overflow-hidden product-image-container relative">
+        {mainImage ? (
+          <img
+            src={mainImage}
+            alt={product.name}
+            className="w-full h-full object-cover"
+            loading="lazy"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <Package className="w-12 h-12 text-muted-foreground/20" />
           </div>
-
-          {/* Quick View Overlay */}
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors duration-300 flex items-center justify-center">
-            <span className="opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-4 group-hover:translate-y-0 bg-white text-foreground px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 shadow-lg">
-              <Eye className="w-4 h-4" />
-              عرض التفاصيل
-            </span>
-          </div>
-        </div>
-      </Link>
-
-      {/* Content */}
-      <div className="p-4">
-        <Link to={`/product/${product.id}`}>
-          <h3 className="font-semibold text-foreground mb-1 hover:text-primary transition-colors line-clamp-1">
-            {product.name}
-          </h3>
-        </Link>
-        
-        {product.description && (
-          <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-            {product.description}
-          </p>
         )}
+        
+        {/* Badges */}
+        <div className="absolute top-3 right-3 flex flex-col gap-2">
+          {product.featured && (
+            <span className="bg-primary text-primary-foreground text-xs px-3 py-1 font-display tracking-wider uppercase">
+              مميز
+            </span>
+          )}
+          {product.stock > 0 && product.stock < 5 && (
+            <span className="bg-secondary text-secondary-foreground text-xs px-3 py-1 font-display tracking-wider">
+              متبقي {product.stock}
+            </span>
+          )}
+          {product.stock === 0 && (
+            <span className="bg-destructive text-destructive-foreground text-xs px-3 py-1 font-display tracking-wider">
+              نفذ
+            </span>
+          )}
+        </div>
 
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-xl font-bold text-primary">
-            {product.price.toLocaleString()} دج
-          </span>
-          
-          <Button
-            size="sm"
+        {/* Quick Add Button - Appears on Hover */}
+        <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-secondary/90 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <button
             onClick={handleAddToCart}
-            disabled={isOutOfStock}
-            className="btn-fire rounded-xl"
+            disabled={product.stock === 0}
+            className="w-full py-3 bg-primary text-primary-foreground font-display text-sm tracking-wider uppercase hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
-            <ShoppingBag className="w-4 h-4 ml-1" />
-            <span className="hidden sm:inline">أضف</span>
-          </Button>
+            <ShoppingBag className="w-4 h-4" />
+            أضف للسلة
+          </button>
         </div>
       </div>
-    </div>
+      
+      {/* Content */}
+      <div className="p-5">
+        {/* Category */}
+        {product.category && (
+          <span className="text-xs text-primary font-display tracking-wider uppercase">
+            {product.category}
+          </span>
+        )}
+        
+        {/* Name */}
+        <h3 className="font-display text-lg font-medium text-foreground mt-2 mb-3 line-clamp-2 group-hover:text-primary transition-colors tracking-wide">
+          {product.name}
+        </h3>
+        
+        {/* Price */}
+        <div className="flex items-baseline gap-2">
+          <span className="text-xl font-display font-semibold text-primary">
+            {product.price.toLocaleString()}
+          </span>
+          <span className="text-sm text-muted-foreground">دج</span>
+        </div>
+      </div>
+    </Link>
   );
 };
 
