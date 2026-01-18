@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, Truck, Shield, Zap, Star, ChevronRight, Flame, Package } from 'lucide-react';
+import { ArrowLeft, Truck, Shield, Award, ChevronLeft, Package, Crown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Layout from '@/components/layout/Layout';
 import ProductCard from '@/components/products/ProductCard';
@@ -11,45 +11,53 @@ const Index = () => {
 
   return (
     <Layout>
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-secondary">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-primary rounded-full blur-3xl" />
-          <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent rounded-full blur-3xl" />
-        </div>
+      {/* Hero Section - Medieval Style */}
+      <section className="hero-medieval min-h-[90vh] flex items-center relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-secondary/50 to-secondary z-10" />
         
-        <div className="container mx-auto px-4 py-16 md:py-24 relative">
-          <div className="max-w-3xl mx-auto text-center slide-up">
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 text-white/80 text-sm mb-6">
-              <Flame className="w-4 h-4 text-primary" />
-              عروض حصرية - خصم يصل إلى 50%
+        {/* Decorative Corner Ornaments */}
+        <div className="absolute top-8 left-8 w-16 h-16 border-t-2 border-l-2 border-primary/30 hidden md:block" />
+        <div className="absolute top-8 right-8 w-16 h-16 border-t-2 border-r-2 border-primary/30 hidden md:block" />
+        <div className="absolute bottom-8 left-8 w-16 h-16 border-b-2 border-l-2 border-primary/30 hidden md:block" />
+        <div className="absolute bottom-8 right-8 w-16 h-16 border-b-2 border-r-2 border-primary/30 hidden md:block" />
+        
+        <div className="container mx-auto px-4 relative z-20">
+          <div className="max-w-4xl mx-auto text-center slide-up">
+            {/* Royal Crest */}
+            <div className="flex items-center justify-center mb-8">
+              <div className="w-20 h-20 border-2 border-primary flex items-center justify-center">
+                <Crown className="w-10 h-10 text-primary" />
+              </div>
+            </div>
+            
+            {/* Decorative Divider */}
+            <div className="divider-royal mb-8 max-w-md mx-auto">
+              <span className="text-primary text-sm tracking-[0.4em] uppercase font-display">ترحيب ملكي</span>
             </div>
             
             {/* Title */}
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
-              تسوق بأسعار
-              <span className="gradient-fire-text block mt-2">لا تُقاوم</span>
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-display font-semibold text-secondary-foreground mb-6 leading-tight tracking-wide">
+              اكتشف عالماً من
+              <span className="block gold-text mt-3">الفخامة والأناقة</span>
             </h1>
             
-            <p className="text-lg md:text-xl text-white/70 mb-8 max-w-xl mx-auto">
-              اكتشف أفضل المنتجات بأسعار منافسة مع توصيل سريع لجميع ولايات الجزائر
+            <p className="text-lg md:text-xl text-secondary-foreground/70 mb-12 max-w-2xl mx-auto leading-relaxed font-arabic">
+              نقدم لك أرقى المنتجات بجودة لا مثيل لها، مع خدمة توصيل متميزة تليق بك
             </p>
             
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button asChild size="lg" className="btn-fire text-lg px-8 py-6 rounded-xl">
+              <Button asChild size="lg" className="btn-royal text-base px-10 py-7 rounded-none">
                 <Link to="/products">
-                  تسوق الآن
-                  <ArrowRight className="w-5 h-5 mr-2" />
+                  استكشف المنتجات
+                  <ArrowLeft className="w-5 h-5 mr-3" />
                 </Link>
               </Button>
               <Button 
                 asChild 
                 variant="outline" 
                 size="lg" 
-                className="text-lg px-8 py-6 rounded-xl border-white/20 text-white hover:bg-white/10"
+                className="text-base px-10 py-7 rounded-none border-primary/40 text-secondary-foreground hover:bg-primary/10 hover:border-primary font-display tracking-wider"
               >
                 <Link to="/track-order">
                   تتبع طلبك
@@ -59,34 +67,32 @@ const Index = () => {
           </div>
         </div>
         
-        {/* Wave Divider */}
-        <div className="absolute bottom-0 left-0 right-0">
-          <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M0 120L60 105C120 90 240 60 360 45C480 30 600 30 720 37.5C840 45 960 60 1080 67.5C1200 75 1320 75 1380 75L1440 75V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0Z" fill="hsl(var(--background))"/>
-          </svg>
+        {/* Scroll Indicator */}
+        <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-20 hidden md:block">
+          <div className="w-px h-16 bg-gradient-to-b from-primary to-transparent mx-auto" />
         </div>
       </section>
 
-      {/* Features */}
-      <section className="py-12 border-b border-border bg-background">
+      {/* Features Section */}
+      <section className="py-20 bg-background border-b border-border">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <FeatureCard 
               icon={<Truck className="w-6 h-6" />}
-              title="توصيل سريع"
-              description="توصيل لجميع الولايات خلال 24-72 ساعة"
+              title="توصيل فاخر"
+              description="توصيل سريع وآمن لجميع ولايات الجزائر"
               delay="0s"
             />
             <FeatureCard 
               icon={<Shield className="w-6 h-6" />}
               title="دفع عند الاستلام"
-              description="ادفع نقداً عند استلام طلبك"
+              description="ادفع بكل أريحية عند استلام طلبك"
               delay="0.1s"
             />
             <FeatureCard 
-              icon={<Zap className="w-6 h-6" />}
-              title="منتجات أصلية"
-              description="ضمان جودة المنتجات 100%"
+              icon={<Award className="w-6 h-6" />}
+              title="جودة مضمونة"
+              description="منتجات أصلية بضمان الجودة"
               delay="0.2s"
             />
           </div>
@@ -94,62 +100,57 @@ const Index = () => {
       </section>
 
       {/* Featured Products */}
-      <section className="py-16 bg-background">
+      <section className="py-20 bg-parchment">
         <div className="container mx-auto px-4">
           {/* Section Header */}
-          <div className="flex items-center justify-between mb-10">
-            <div>
-              <h2 className="text-2xl md:text-3xl font-bold text-foreground flex items-center gap-2">
-                <Star className="w-6 h-6 text-primary" />
-                منتجات مميزة
-              </h2>
-              <p className="text-muted-foreground mt-1">اكتشف أحدث المنتجات وأكثرها طلباً</p>
+          <div className="text-center mb-16">
+            <div className="divider-royal mb-6 max-w-xs mx-auto">
+              <span className="text-xs tracking-[0.3em] uppercase font-display">مختارات</span>
             </div>
-            <Link 
-              to="/products" 
-              className="hidden md:flex items-center gap-1 text-primary hover:gap-2 transition-all font-medium"
-            >
-              عرض الكل
-              <ChevronRight className="w-4 h-4" />
-            </Link>
+            <h2 className="text-3xl md:text-4xl font-display font-semibold text-foreground mb-4 tracking-wide">
+              المنتجات المميزة
+            </h2>
+            <p className="text-muted-foreground max-w-lg mx-auto">
+              اكتشف مجموعتنا المختارة بعناية من أفضل المنتجات
+            </p>
           </div>
 
           {/* Products Grid */}
           {isLoading ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {[...Array(8)].map((_, i) => (
-                <div key={i} className="bg-muted rounded-2xl aspect-[3/4] animate-pulse" />
+                <div key={i} className="bg-muted aspect-[3/4] animate-pulse" />
               ))}
             </div>
           ) : featuredProducts.length > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-              {featuredProducts.map((product, index) => (
-                <div key={product.id} className="fade-in" style={{ animationDelay: `${index * 0.05}s` }}>
-                  <ProductCard product={product} />
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-16 bg-muted/30 rounded-2xl">
-              <Package className="w-16 h-16 mx-auto text-muted-foreground/30 mb-4" />
-              <h3 className="text-xl font-semibold text-muted-foreground mb-2">لا توجد منتجات حالياً</h3>
-              <p className="text-muted-foreground mb-6">أضف منتجات من لوحة التحكم</p>
-              <Button asChild>
-                <Link to="/admin">
-                  لوحة التحكم
-                  <ArrowRight className="w-4 h-4 mr-2" />
-                </Link>
-              </Button>
-            </div>
-          )}
-
-          {/* Mobile View All Button */}
-          {featuredProducts.length > 0 && (
-            <div className="md:hidden mt-8 text-center">
-              <Button asChild variant="outline" size="lg" className="w-full">
-                <Link to="/products">
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {featuredProducts.map((product, index) => (
+                  <div key={product.id} className="fade-in" style={{ animationDelay: `${index * 0.08}s` }}>
+                    <ProductCard product={product} />
+                  </div>
+                ))}
+              </div>
+              
+              {/* View All Link */}
+              <div className="text-center mt-12">
+                <Link 
+                  to="/products" 
+                  className="inline-flex items-center gap-2 font-display text-primary hover:text-primary/80 transition-colors tracking-wider uppercase text-sm"
+                >
                   عرض جميع المنتجات
-                  <ArrowRight className="w-4 h-4 mr-2" />
+                  <ChevronLeft className="w-4 h-4" />
+                </Link>
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-20 border border-border bg-card">
+              <Package className="w-16 h-16 mx-auto text-muted-foreground/30 mb-6" />
+              <h3 className="text-xl font-display text-muted-foreground mb-3">لا توجد منتجات حالياً</h3>
+              <p className="text-muted-foreground mb-8">أضف منتجات من لوحة الإدارة</p>
+              <Button asChild className="btn-royal rounded-none">
+                <Link to="/admin">
+                  لوحة الإدارة
                 </Link>
               </Button>
             </div>
@@ -158,24 +159,29 @@ const Index = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-secondary relative overflow-hidden">
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute top-0 left-1/4 w-64 h-64 bg-primary rounded-full blur-3xl" />
-          <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-accent rounded-full blur-3xl" />
+      <section className="py-24 bg-secondary relative overflow-hidden">
+        {/* Decorative Pattern */}
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] border border-primary rounded-full" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] border border-primary rounded-full" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] border border-primary rounded-full" />
         </div>
         
         <div className="container mx-auto px-4 relative">
           <div className="max-w-2xl mx-auto text-center">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              جاهز للتسوق؟
+            <div className="divider-royal mb-8 max-w-xs mx-auto">
+              <span className="text-xs tracking-[0.3em] uppercase font-display">دعوة خاصة</span>
+            </div>
+            
+            <h2 className="text-3xl md:text-5xl font-display font-semibold text-secondary-foreground mb-6 tracking-wide">
+              انضم إلى عملائنا المميزين
             </h2>
-            <p className="text-white/70 text-lg mb-8">
-              انضم إلى آلاف العملاء السعداء واحصل على أفضل الصفقات
+            <p className="text-secondary-foreground/70 text-lg mb-10 leading-relaxed">
+              احصل على أفضل المنتجات بأسعار حصرية مع خدمة عملاء متميزة
             </p>
-            <Button asChild size="lg" className="btn-fire text-lg px-10 py-6 rounded-xl">
+            <Button asChild size="lg" className="btn-royal text-base px-12 py-7 rounded-none">
               <Link to="/products">
                 ابدأ التسوق الآن
-                <Flame className="w-5 h-5 mr-2" />
               </Link>
             </Button>
           </div>
@@ -197,16 +203,14 @@ const FeatureCard = ({
   delay: string;
 }) => (
   <div 
-    className="flex items-center gap-4 p-5 rounded-2xl bg-card card-elevated fade-in"
+    className="text-center p-8 border border-border bg-card hover:border-primary/30 transition-all fade-in"
     style={{ animationDelay: delay }}
   >
-    <div className="w-14 h-14 rounded-xl gradient-fire flex items-center justify-center shrink-0 text-white">
+    <div className="w-16 h-16 mx-auto mb-6 border border-primary flex items-center justify-center text-primary">
       {icon}
     </div>
-    <div>
-      <h3 className="font-semibold text-foreground">{title}</h3>
-      <p className="text-sm text-muted-foreground">{description}</p>
-    </div>
+    <h3 className="font-display text-lg font-semibold text-foreground mb-3 tracking-wide">{title}</h3>
+    <p className="text-muted-foreground">{description}</p>
   </div>
 );
 

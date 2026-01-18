@@ -17,8 +17,9 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['Inter', 'sans-serif'],
-        display: ['Playfair Display', 'serif'],
+        sans: ['Cormorant Garamond', 'Amiri', 'serif'],
+        display: ['Cinzel', 'Amiri', 'serif'],
+        arabic: ['Amiri', 'serif'],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -64,6 +65,16 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        // Medieval Custom Colors
+        gold: {
+          light: "hsl(43, 74%, 65%)",
+          DEFAULT: "hsl(43, 74%, 49%)",
+          dark: "hsl(35, 60%, 40%)",
+        },
+        royal: {
+          black: "hsl(35, 20%, 8%)",
+          charcoal: "hsl(35, 20%, 12%)",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -79,10 +90,15 @@ export default {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
+        shimmer: {
+          "0%": { backgroundPosition: "-200% 0" },
+          "100%": { backgroundPosition: "200% 0" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        shimmer: "shimmer 3s linear infinite",
       },
     },
   },
