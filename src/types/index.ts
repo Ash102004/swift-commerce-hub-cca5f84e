@@ -3,12 +3,16 @@ export interface Product {
   name: string;
   nameAr?: string;
   price: number;
-  description: string;
+  description: string | null;
   descriptionAr?: string;
-  image: string;
-  category: string;
+  image?: string;
+  images?: string[] | null;
+  category: string | null;
   stock: number;
-  createdAt: string;
+  featured?: boolean | null;
+  createdAt?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface CartItem {

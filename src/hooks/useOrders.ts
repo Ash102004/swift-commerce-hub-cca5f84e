@@ -17,7 +17,7 @@ export interface DbOrder {
   coupon_code: string | null;
   total: number;
   status: string;
-  tracking_code: string;
+  tracking_code: string | null;
   notes: string | null;
   created_at: string;
   updated_at: string;

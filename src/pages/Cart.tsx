@@ -115,7 +115,7 @@ const Cart = () => {
           productName: item.product.name,
           price: item.product.price,
           quantity: item.quantity,
-          image: item.product.image,
+          image: (item.product as any).images?.[0] || item.product.image,
         })),
         subtotal: total,
         shipping_cost: deliveryCost,
