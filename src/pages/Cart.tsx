@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Minus, Plus, Trash2, ShoppingBag, Package, ArrowLeft, Ticket, X, Check, Loader2 } from 'lucide-react';
+import { Minus, Plus, Trash2, ShoppingBag, Package, ArrowLeft, Ticket, X, Check, Loader2, Crown, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 import { wilayas, getBaladiyas, getDeliveryPrice } from '@/data/algeriaLocations';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -144,14 +144,16 @@ const Cart = () => {
   if (items.length === 0 && !isCheckout) {
     return (
       <Layout>
-        <div className="container mx-auto px-4 py-16">
-          <div className="max-w-md mx-auto text-center">
-            <ShoppingBag className="w-20 h-20 mx-auto text-muted-foreground/30 mb-6" />
-            <h1 className="font-display text-2xl font-semibold mb-4">سلة التسوق فارغة</h1>
-            <p className="text-muted-foreground mb-8">
+        <div className="min-h-[60vh] flex items-center justify-center bg-parchment">
+          <div className="max-w-md mx-auto text-center px-4 py-16">
+            <div className="w-24 h-24 mx-auto mb-8 border-2 border-primary/30 flex items-center justify-center bg-card">
+              <ShoppingBag className="w-12 h-12 text-muted-foreground/30" />
+            </div>
+            <h1 className="font-display text-3xl font-semibold mb-4 gold-text">سلة التسوق فارغة</h1>
+            <p className="text-muted-foreground text-body mb-8">
               يبدو أنك لم تضف أي منتجات إلى سلة التسوق بعد.
             </p>
-            <Button asChild className="btn-fire">
+            <Button asChild className="btn-royal px-8 py-3">
               <Link to="/products">
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 تابع التسوق
@@ -165,276 +167,320 @@ const Cart = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="font-display text-3xl md:text-4xl font-semibold mb-8 gradient-text">
-          {isCheckout ? 'إتمام الطلب' : 'سلة التسوق'}
-        </h1>
+      {/* Hero Section */}
+      <div className="hero-medieval py-12 relative">
+        <div className="container mx-auto px-4 text-center relative z-10">
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <Crown className="w-8 h-8 text-primary" />
+          </div>
+          <h1 className="font-display text-3xl md:text-4xl font-semibold gold-text mb-2">
+            {isCheckout ? 'إتمام الطلب الملكي' : 'سلة التسوق الملكية'}
+          </h1>
+          <p className="text-secondary-foreground/60 text-body">
+            {isCheckout ? 'أدخل معلومات التوصيل لإتمام طلبك' : 'راجع منتجاتك قبل إتمام الطلب'}
+          </p>
+        </div>
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Cart Items */}
-          <div className="lg:col-span-2">
-            {!isCheckout ? (
-              <div className="space-y-4">
-                {items.map(item => (
-                  <div
-                    key={item.product.id}
-                    className="bg-card rounded-lg p-4 flex gap-4 card-elevated"
-                  >
-                    <div className="w-20 h-20 bg-secondary rounded-lg overflow-hidden shrink-0">
-                      {item.product.image ? (
-                        <img
-                          src={item.product.image}
-                          alt={item.product.name}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Package className="w-8 h-8 text-muted-foreground/30" />
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium truncate">{item.product.name}</h3>
-                      <p className="text-sm text-muted-foreground">{item.product.price} دج</p>
-                      <div className="flex items-center gap-3 mt-2">
-                        <div className="flex items-center gap-2">
+      <div className="bg-parchment py-12">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Cart Items */}
+            <div className="lg:col-span-2">
+              {!isCheckout ? (
+                <div className="space-y-4">
+                  {items.map((item, index) => (
+                    <div
+                      key={item.product.id}
+                      className="card-royal rounded-none p-6 flex gap-6 fade-in hover-lift"
+                      style={{ animationDelay: `${index * 0.1}s` }}
+                    >
+                      <div className="w-24 h-24 border border-border overflow-hidden shrink-0 bg-muted">
+                        {item.product.image ? (
+                          <img
+                            src={item.product.image}
+                            alt={item.product.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Package className="w-10 h-10 text-muted-foreground/30" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-display text-lg font-medium truncate">{item.product.name}</h3>
+                        <p className="text-sm text-muted-foreground mt-1">{item.product.price.toLocaleString()} دج</p>
+                        <div className="flex items-center gap-4 mt-4">
+                          <div className="flex items-center border border-border">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-9 w-9 rounded-none border-l border-border hover:bg-primary/10 hover:text-primary"
+                              onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                            >
+                              <Minus className="w-4 h-4" />
+                            </Button>
+                            <span className="w-12 text-center font-display font-medium">{item.quantity}</span>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-9 w-9 rounded-none border-r border-border hover:bg-primary/10 hover:text-primary"
+                              onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                            >
+                              <Plus className="w-4 h-4" />
+                            </Button>
+                          </div>
                           <Button
-                            variant="outline"
+                            variant="ghost"
                             size="icon"
-                            className="h-8 w-8"
-                            onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                            className="h-9 w-9 text-destructive hover:text-destructive hover:bg-destructive/10"
+                            onClick={() => removeFromCart(item.product.id)}
                           >
-                            <Minus className="w-4 h-4" />
-                          </Button>
-                          <span className="w-8 text-center font-medium">{item.quantity}</span>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                          >
-                            <Plus className="w-4 h-4" />
+                            <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-destructive hover:text-destructive"
-                          onClick={() => removeFromCart(item.product.id)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                      </div>
+                      <div className="text-right">
+                        <span className="font-display text-lg font-semibold text-primary">
+                          {(item.product.price * item.quantity).toLocaleString()} دج
+                        </span>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <span className="font-semibold text-primary">{(item.product.price * item.quantity).toFixed(2)} دج</span>
+                  ))}
+                </div>
+              ) : (
+                <form onSubmit={handlePlaceOrder} className="card-royal rounded-none p-8 space-y-8">
+                  <div className="flex items-center gap-3 pb-6 border-b border-border">
+                    <Shield className="w-6 h-6 text-primary" />
+                    <h2 className="font-display text-xl font-medium">معلومات التوصيل</h2>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="name" className="font-display">الاسم الكامل *</Label>
+                      <Input
+                        id="name"
+                        value={customerInfo.name}
+                        onChange={e => setCustomerInfo(prev => ({ ...prev, name: e.target.value }))}
+                        placeholder="أدخل اسمك الكامل"
+                        dir="rtl"
+                        className="rounded-none border-border focus:border-primary"
+                      />
                     </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <form onSubmit={handlePlaceOrder} className="bg-card rounded-lg p-6 card-elevated space-y-6">
-                <h2 className="font-display text-xl font-medium">معلومات التوصيل</h2>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">الاسم الكامل *</Label>
-                    <Input
-                      id="name"
-                      value={customerInfo.name}
-                      onChange={e => setCustomerInfo(prev => ({ ...prev, name: e.target.value }))}
-                      placeholder="أدخل اسمك الكامل"
-                      dir="rtl"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">رقم الهاتف *</Label>
-                    <Input
-                      id="phone"
-                      type="tel"
-                      value={customerInfo.phone}
-                      onChange={e => setCustomerInfo(prev => ({ ...prev, phone: e.target.value }))}
-                      placeholder="أدخل رقم هاتفك"
-                      dir="ltr"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>الولاية *</Label>
-                    <Select value={customerInfo.wilaya} onValueChange={handleWilayaChange}>
-                      <SelectTrigger className="bg-background">
-                        <SelectValue placeholder="اختر الولاية" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-background z-50">
-                        {wilayas.map(wilaya => (
-                          <SelectItem key={wilaya.id} value={wilaya.id}>
-                            {wilaya.id} - {wilaya.nameAr}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>البلدية *</Label>
-                    <Select 
-                      value={customerInfo.baladiya} 
-                      onValueChange={(value) => setCustomerInfo(prev => ({ ...prev, baladiya: value }))}
-                      disabled={!customerInfo.wilaya}
-                    >
-                      <SelectTrigger className="bg-background">
-                        <SelectValue placeholder={customerInfo.wilaya ? "اختر البلدية" : "اختر الولاية أولاً"} />
-                      </SelectTrigger>
-                      <SelectContent className="bg-background z-50">
-                        {availableBaladiyas.map(baladiya => (
-                          <SelectItem key={baladiya.id} value={baladiya.id}>
-                            {baladiya.nameAr}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="address">العنوان التفصيلي</Label>
-                    <Input
-                      id="address"
-                      value={customerInfo.address}
-                      onChange={e => setCustomerInfo(prev => ({ ...prev, address: e.target.value }))}
-                      placeholder="أدخل عنوانك التفصيلي (اختياري)"
-                      dir="rtl"
-                    />
+                    <div className="space-y-2">
+                      <Label htmlFor="phone" className="font-display">رقم الهاتف *</Label>
+                      <Input
+                        id="phone"
+                        type="tel"
+                        value={customerInfo.phone}
+                        onChange={e => setCustomerInfo(prev => ({ ...prev, phone: e.target.value }))}
+                        placeholder="أدخل رقم هاتفك"
+                        dir="ltr"
+                        className="rounded-none border-border focus:border-primary"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="font-display">الولاية *</Label>
+                      <Select value={customerInfo.wilaya} onValueChange={handleWilayaChange}>
+                        <SelectTrigger className="rounded-none bg-background border-border">
+                          <SelectValue placeholder="اختر الولاية" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-background z-50">
+                          {wilayas.map(wilaya => (
+                            <SelectItem key={wilaya.id} value={wilaya.id}>
+                              {wilaya.id} - {wilaya.nameAr}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="font-display">البلدية *</Label>
+                      <Select 
+                        value={customerInfo.baladiya} 
+                        onValueChange={(value) => setCustomerInfo(prev => ({ ...prev, baladiya: value }))}
+                        disabled={!customerInfo.wilaya}
+                      >
+                        <SelectTrigger className="rounded-none bg-background border-border">
+                          <SelectValue placeholder={customerInfo.wilaya ? "اختر البلدية" : "اختر الولاية أولاً"} />
+                        </SelectTrigger>
+                        <SelectContent className="bg-background z-50">
+                          {availableBaladiyas.map(baladiya => (
+                            <SelectItem key={baladiya.id} value={baladiya.id}>
+                              {baladiya.nameAr}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <Label htmlFor="address" className="font-display">العنوان التفصيلي</Label>
+                      <Input
+                        id="address"
+                        value={customerInfo.address}
+                        onChange={e => setCustomerInfo(prev => ({ ...prev, address: e.target.value }))}
+                        placeholder="أدخل عنوانك التفصيلي (اختياري)"
+                        dir="rtl"
+                        className="rounded-none border-border focus:border-primary"
+                      />
+                    </div>
                   </div>
                   
                   {/* Delivery Type Selection */}
                   {customerInfo.wilaya && deliveryPrice && (
-                    <div className="space-y-3">
-                      <Label>نوع التوصيل *</Label>
+                    <div className="space-y-4 pt-6 border-t border-border">
+                      <Label className="font-display text-lg">نوع التوصيل *</Label>
                       <RadioGroup 
                         value={deliveryType} 
                         onValueChange={(value) => setDeliveryType(value as DeliveryType)}
-                        className="space-y-3"
+                        className="grid grid-cols-1 md:grid-cols-2 gap-4"
                       >
-                        <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors cursor-pointer">
+                        <div className={`flex items-center justify-between p-5 border-2 transition-all cursor-pointer ${deliveryType === 'home' ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'}`}>
                           <div className="flex items-center gap-3">
                             <RadioGroupItem value="home" id="home" />
-                            <Label htmlFor="home" className="cursor-pointer font-normal">
+                            <Label htmlFor="home" className="cursor-pointer font-display">
                               توصيل للبيت
                             </Label>
                           </div>
-                          <span className="font-semibold text-primary">{deliveryPrice.homeDelivery} دج</span>
+                          <span className="font-display font-semibold text-primary">{deliveryPrice.homeDelivery} دج</span>
                         </div>
-                        <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors cursor-pointer">
+                        <div className={`flex items-center justify-between p-5 border-2 transition-all cursor-pointer ${deliveryType === 'desk' ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'}`}>
                           <div className="flex items-center gap-3">
                             <RadioGroupItem value="desk" id="desk" />
-                            <Label htmlFor="desk" className="cursor-pointer font-normal">
+                            <Label htmlFor="desk" className="cursor-pointer font-display">
                               توصيل للمكتب
                             </Label>
                           </div>
-                          <span className="font-semibold text-primary">{deliveryPrice.deskDelivery} دج</span>
+                          <span className="font-display font-semibold text-primary">{deliveryPrice.deskDelivery} دج</span>
                         </div>
                       </RadioGroup>
                     </div>
                   )}
-                </div>
-                <div className="flex gap-3 pt-4">
-                  <Button type="button" variant="outline" onClick={() => setIsCheckout(false)} disabled={isSubmitting}>
-                    العودة للسلة
-                  </Button>
-                  <Button type="submit" className="flex-1 btn-fire" disabled={isSubmitting}>
-                    {isSubmitting && <Loader2 className="w-4 h-4 ml-2 animate-spin" />}
-                    تأكيد الطلب
-                  </Button>
-                </div>
-              </form>
-            )}
-          </div>
-
-          {/* Order Summary */}
-          <div className="lg:col-span-1">
-            <div className="bg-card rounded-lg p-6 card-elevated sticky top-24">
-              <h2 className="font-display text-xl font-medium mb-4">ملخص الطلب</h2>
-              <div className="space-y-3 mb-6">
-                {items.map(item => (
-                  <div key={item.product.id} className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">
-                      {item.product.name} × {item.quantity}
-                    </span>
-                    <span>{(item.product.price * item.quantity).toFixed(2)} دج</span>
-                  </div>
-                ))}
-              </div>
-              
-              {/* Coupon Section */}
-              <div className="border-t border-border pt-4 space-y-3">
-                {!appliedCoupon ? (
-                  <div className="space-y-2">
-                    <Label className="flex items-center gap-2">
-                      <Ticket className="w-4 h-4" />
-                      كود الخصم
-                    </Label>
-                    <div className="flex gap-2">
-                      <Input
-                        value={couponCode}
-                        onChange={e => {
-                          setCouponCode(e.target.value.toUpperCase());
-                          setCouponError('');
-                        }}
-                        placeholder="أدخل الكود"
-                        className="font-mono"
-                      />
-                      <Button type="button" variant="outline" onClick={handleApplyCoupon} disabled={isValidating}>
-                        {isValidating ? <Loader2 className="w-4 h-4 animate-spin" /> : 'تطبيق'}
-                      </Button>
-                    </div>
-                    {couponError && (
-                      <p className="text-sm text-destructive">{couponError}</p>
-                    )}
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-between p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <Check className="w-4 h-4 text-green-600" />
-                      <span className="font-mono font-medium">{appliedCoupon.code}</span>
-                      <span className="text-sm text-muted-foreground">
-                        (-{appliedCoupon.type === 'percentage' ? `${appliedCoupon.value}%` : `${appliedCoupon.value} دج`})
-                      </span>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6"
-                      onClick={handleRemoveCoupon}
+                  
+                  <div className="flex gap-4 pt-6 border-t border-border">
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={() => setIsCheckout(false)} 
+                      disabled={isSubmitting}
+                      className="rounded-none border-border font-display"
                     >
-                      <X className="w-4 h-4" />
+                      العودة للسلة
+                    </Button>
+                    <Button 
+                      type="submit" 
+                      className="flex-1 btn-royal rounded-none" 
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting && <Loader2 className="w-4 h-4 ml-2 animate-spin" />}
+                      تأكيد الطلب الملكي
                     </Button>
                   </div>
-                )}
-              </div>
+                </form>
+              )}
+            </div>
 
-              <div className="border-t border-border pt-4 space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">المجموع الفرعي</span>
-                  <span>{total.toFixed(2)} دج</span>
+            {/* Order Summary */}
+            <div className="lg:col-span-1">
+              <div className="card-royal rounded-none p-8 sticky top-24">
+                <div className="flex items-center gap-3 pb-6 border-b border-border mb-6">
+                  <Crown className="w-5 h-5 text-primary" />
+                  <h2 className="font-display text-xl font-medium">ملخص الطلب</h2>
                 </div>
-                {discount > 0 && (
-                  <div className="flex justify-between text-sm text-green-600">
-                    <span>الخصم</span>
-                    <span>-{discount.toFixed(2)} دج</span>
+                
+                <div className="space-y-4 mb-6">
+                  {items.map(item => (
+                    <div key={item.product.id} className="flex justify-between text-sm">
+                      <span className="text-muted-foreground text-body">
+                        {item.product.name} × {item.quantity}
+                      </span>
+                      <span className="font-display">{(item.product.price * item.quantity).toLocaleString()} دج</span>
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Coupon Section */}
+                <div className="border-t border-border pt-6 space-y-4">
+                  {!appliedCoupon ? (
+                    <div className="space-y-3">
+                      <Label className="flex items-center gap-2 font-display">
+                        <Ticket className="w-4 h-4 text-primary" />
+                        كود الخصم
+                      </Label>
+                      <div className="flex gap-2">
+                        <Input
+                          value={couponCode}
+                          onChange={e => {
+                            setCouponCode(e.target.value.toUpperCase());
+                            setCouponError('');
+                          }}
+                          placeholder="أدخل الكود"
+                          className="font-mono rounded-none border-border"
+                        />
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          onClick={handleApplyCoupon} 
+                          disabled={isValidating}
+                          className="rounded-none border-border hover:border-primary hover:bg-primary/10 font-display"
+                        >
+                          {isValidating ? <Loader2 className="w-4 h-4 animate-spin" /> : 'تطبيق'}
+                        </Button>
+                      </div>
+                      {couponError && (
+                        <p className="text-sm text-destructive">{couponError}</p>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between p-4 bg-primary/10 border border-primary/30">
+                      <div className="flex items-center gap-2">
+                        <Check className="w-4 h-4 text-primary" />
+                        <span className="font-mono font-medium">{appliedCoupon.code}</span>
+                        <span className="text-sm text-muted-foreground">
+                          (-{appliedCoupon.type === 'percentage' ? `${appliedCoupon.value}%` : `${appliedCoupon.value} دج`})
+                        </span>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 hover:bg-destructive/10 hover:text-destructive"
+                        onClick={handleRemoveCoupon}
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
+                <div className="border-t border-border pt-6 mt-6 space-y-3">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">المجموع الفرعي</span>
+                    <span className="font-display">{total.toLocaleString()} دج</span>
                   </div>
-                )}
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">تكلفة التوصيل</span>
-                  <span className={deliveryCost > 0 ? 'text-foreground' : 'text-muted-foreground'}>
-                    {deliveryCost > 0 ? `${deliveryCost} دج` : 'اختر الولاية'}
-                  </span>
+                  {discount > 0 && (
+                    <div className="flex justify-between text-sm text-primary">
+                      <span>الخصم</span>
+                      <span className="font-display">-{discount.toLocaleString()} دج</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">تكلفة التوصيل</span>
+                    <span className={`font-display ${deliveryCost > 0 ? 'text-foreground' : 'text-muted-foreground'}`}>
+                      {deliveryCost > 0 ? `${deliveryCost.toLocaleString()} دج` : 'اختر الولاية'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center pt-4 border-t border-primary/30">
+                    <span className="font-display font-medium">المجموع الكلي</span>
+                    <span className="text-2xl font-display font-semibold gold-text">{grandTotal.toLocaleString()} دج</span>
+                  </div>
+                  {!isCheckout && (
+                    <Button className="w-full btn-royal rounded-none mt-6" onClick={() => setIsCheckout(true)}>
+                      متابعة الطلب الملكي
+                    </Button>
+                  )}
                 </div>
-                <div className="flex justify-between items-center pt-2 border-t border-border">
-                  <span className="font-medium">المجموع الكلي</span>
-                  <span className="text-2xl font-display font-semibold text-primary">{grandTotal.toFixed(2)} دج</span>
-                </div>
-                {!isCheckout && (
-                  <Button className="w-full btn-fire mt-4" onClick={() => setIsCheckout(true)}>
-                    متابعة الطلب
-                  </Button>
-                )}
               </div>
             </div>
           </div>
