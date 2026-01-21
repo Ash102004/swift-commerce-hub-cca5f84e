@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useOrders, DbOrder } from '@/hooks/useOrders';
@@ -17,11 +18,12 @@ import {
   LineChart,
   Line,
 } from 'recharts';
-import { TrendingUp, Package, Users, Calendar, Download, Loader2 } from 'lucide-react';
+import { TrendingUp, Package, Users, Calendar, Download, Loader2, BarChart3, Crown } from 'lucide-react';
 import { exportStatsToExcel } from '@/utils/exportToExcel';
+import { staggerContainer, staggerItem } from '@/components/motion/MotionComponents';
 
 const statusColors = {
-  pending: '#eab308',
+  pending: '#d97706',
   confirmed: '#3b82f6',
   shipped: '#8b5cf6',
   delivered: '#22c55e',
@@ -63,13 +65,13 @@ const SalesStats = () => {
         const id = item.product?.id || item.productId;
         if (!productSales[id]) {
           productSales[id] = {
-            name: item.product?.name || 'منتج',
+            name: item.productName || item.product?.name || 'منتج',
             quantity: 0,
             revenue: 0,
           };
         }
         productSales[id].quantity += item.quantity;
-        productSales[id].revenue += (item.product?.price || 0) * item.quantity;
+        productSales[id].revenue += (item.price || item.product?.price || 0) * item.quantity;
       });
     });
 
@@ -121,106 +123,152 @@ const SalesStats = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <div className="flex items-center justify-center py-16">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+        >
+          <Loader2 className="w-10 h-10 text-primary" />
+        </motion.div>
       </div>
     );
   }
 
   if (orders.length === 0) {
     return (
-      <Card>
-        <CardContent className="py-12 text-center">
-          <TrendingUp className="w-16 h-16 mx-auto text-muted-foreground/30 mb-4" />
-          <h3 className="font-medium text-lg mb-2">لا توجد بيانات بعد</h3>
-          <p className="text-muted-foreground text-sm">
-            ستظهر الإحصائيات هنا بعد استلام الطلبات
-          </p>
-        </CardContent>
-      </Card>
+      <motion.div 
+        className="card-royal rounded-none py-16 text-center"
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.4 }}
+      >
+        <div className="w-20 h-20 mx-auto border-2 border-primary/30 flex items-center justify-center mb-6">
+          <TrendingUp className="w-10 h-10 text-muted-foreground/30" />
+        </div>
+        <h3 className="font-display text-xl mb-2">لا توجد بيانات بعد</h3>
+        <p className="text-sm text-muted-foreground">ستظهر الإحصائيات هنا بعد استلام الطلبات</p>
+      </motion.div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Export Button */}
-      <div className="flex justify-end">
-        <Button
-          variant="outline"
-          onClick={() => exportStatsToExcel(orders as any, topProducts, salesByDay)}
-          className="gap-2"
-        >
-          <Download className="w-4 h-4" />
-          تصدير الإحصائيات إلى Excel
-        </Button>
-      </div>
+    <div className="space-y-8">
+      {/* Header */}
+      <motion.div 
+        className="flex justify-between items-center"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 border-2 border-primary flex items-center justify-center">
+            <BarChart3 className="w-5 h-5 text-primary" />
+          </div>
+          <h2 className="font-display text-2xl font-semibold gold-text">الإحصائيات</h2>
+        </div>
+        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+          <Button
+            variant="outline"
+            onClick={() => exportStatsToExcel(orders as any, topProducts, salesByDay)}
+            className="gap-2 rounded-none border-border hover:border-primary hover:bg-primary/10 font-display"
+          >
+            <Download className="w-4 h-4" />
+            تصدير إلى Excel
+          </Button>
+        </motion.div>
+      </motion.div>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="pt-6">
+      <motion.div 
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
+        variants={staggerContainer}
+        initial="hidden"
+        animate="visible"
+      >
+        <motion.div variants={staggerItem} whileHover={{ y: -4, transition: { duration: 0.2 } }}>
+          <div className="card-royal rounded-none p-6">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-lg bg-green-500/10 flex items-center justify-center">
-                <TrendingUp className="w-6 h-6 text-green-600" />
-              </div>
+              <motion.div 
+                className="w-14 h-14 border-2 border-emerald-500 flex items-center justify-center bg-emerald-500/5"
+                whileHover={{ rotate: 5, scale: 1.05 }}
+              >
+                <TrendingUp className="w-7 h-7 text-emerald-600" />
+              </motion.div>
               <div>
                 <p className="text-sm text-muted-foreground">متوسط قيمة الطلب</p>
-                <p className="text-xl font-semibold">{stats.avgOrderValue.toFixed(2)} دج</p>
+                <p className="text-xl font-display font-semibold">{stats.avgOrderValue.toLocaleString()} دج</p>
               </div>
             </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
+          </div>
+        </motion.div>
+        <motion.div variants={staggerItem} whileHover={{ y: -4, transition: { duration: 0.2 } }}>
+          <div className="card-royal rounded-none p-6">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                <Users className="w-6 h-6 text-blue-600" />
-              </div>
+              <motion.div 
+                className="w-14 h-14 border-2 border-blue-500 flex items-center justify-center bg-blue-500/5"
+                whileHover={{ rotate: 5, scale: 1.05 }}
+              >
+                <Users className="w-7 h-7 text-blue-600" />
+              </motion.div>
               <div>
                 <p className="text-sm text-muted-foreground">عدد العملاء</p>
-                <p className="text-xl font-semibold">{stats.uniqueCustomers}</p>
+                <p className="text-xl font-display font-semibold">{stats.uniqueCustomers}</p>
               </div>
             </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
+          </div>
+        </motion.div>
+        <motion.div variants={staggerItem} whileHover={{ y: -4, transition: { duration: 0.2 } }}>
+          <div className="card-royal rounded-none p-6">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-lg bg-purple-500/10 flex items-center justify-center">
-                <Package className="w-6 h-6 text-purple-600" />
-              </div>
+              <motion.div 
+                className="w-14 h-14 border-2 border-purple-500 flex items-center justify-center bg-purple-500/5"
+                whileHover={{ rotate: 5, scale: 1.05 }}
+              >
+                <Package className="w-7 h-7 text-purple-600" />
+              </motion.div>
               <div>
                 <p className="text-sm text-muted-foreground">نسبة التوصيل</p>
-                <p className="text-xl font-semibold">{stats.deliveryRate.toFixed(0)}%</p>
+                <p className="text-xl font-display font-semibold">{stats.deliveryRate.toFixed(0)}%</p>
               </div>
             </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
+          </div>
+        </motion.div>
+        <motion.div variants={staggerItem} whileHover={{ y: -4, transition: { duration: 0.2 } }}>
+          <div className="card-royal rounded-none p-6">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-lg bg-orange-500/10 flex items-center justify-center">
-                <Calendar className="w-6 h-6 text-orange-600" />
-              </div>
+              <motion.div 
+                className="w-14 h-14 border-2 border-amber-500 flex items-center justify-center bg-amber-500/5"
+                whileHover={{ rotate: 5, scale: 1.05 }}
+              >
+                <Calendar className="w-7 h-7 text-amber-600" />
+              </motion.div>
               <div>
                 <p className="text-sm text-muted-foreground">طلبات اليوم</p>
-                <p className="text-xl font-semibold">
+                <p className="text-xl font-display font-semibold">
                   {salesByDay[salesByDay.length - 1]?.orders || 0}
                 </p>
               </div>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </motion.div>
+      </motion.div>
 
       {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <motion.div 
+        className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3, duration: 0.5 }}
+      >
         {/* Sales Trend */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">المبيعات خلال الأسبوع</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <div className="card-royal rounded-none overflow-hidden">
+          <div className="p-6 border-b border-border">
+            <h3 className="font-display text-lg font-medium flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-primary" />
+              المبيعات خلال الأسبوع
+            </h3>
+          </div>
+          <div className="p-6">
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={salesByDay}>
@@ -230,30 +278,35 @@ const SalesStats = () => {
                   <Tooltip
                     contentStyle={{
                       backgroundColor: 'hsl(var(--card))',
-                      border: '1px solid hsl(var(--border))',
-                      borderRadius: '8px',
+                      border: '1px solid hsl(var(--primary) / 0.3)',
+                      borderRadius: '0',
+                      fontFamily: 'Cormorant Garamond',
                     }}
-                    formatter={(value: number) => [`${value.toFixed(2)} دج`, 'المبيعات']}
+                    formatter={(value: number) => [`${value.toLocaleString()} دج`, 'المبيعات']}
                   />
                   <Line
                     type="monotone"
                     dataKey="sales"
                     stroke="hsl(var(--primary))"
-                    strokeWidth={2}
-                    dot={{ fill: 'hsl(var(--primary))' }}
+                    strokeWidth={3}
+                    dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2, r: 5 }}
+                    activeDot={{ r: 8, fill: 'hsl(var(--primary))' }}
                   />
                 </LineChart>
               </ResponsiveContainer>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Order Status Distribution */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">توزيع حالات الطلبات</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <div className="card-royal rounded-none overflow-hidden">
+          <div className="p-6 border-b border-border">
+            <h3 className="font-display text-lg font-medium flex items-center gap-2">
+              <Crown className="w-5 h-5 text-primary" />
+              توزيع حالات الطلبات
+            </h3>
+          </div>
+          <div className="p-6">
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -275,23 +328,32 @@ const SalesStats = () => {
                   <Tooltip
                     contentStyle={{
                       backgroundColor: 'hsl(var(--card))',
-                      border: '1px solid hsl(var(--border))',
-                      borderRadius: '8px',
+                      border: '1px solid hsl(var(--primary) / 0.3)',
+                      borderRadius: '0',
+                      fontFamily: 'Cormorant Garamond',
                     }}
                   />
                 </PieChart>
               </ResponsiveContainer>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </div>
+      </motion.div>
 
       {/* Top Products */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">المنتجات الأكثر مبيعاً</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4, duration: 0.5 }}
+        className="card-royal rounded-none overflow-hidden"
+      >
+        <div className="p-6 border-b border-border">
+          <h3 className="font-display text-lg font-medium flex items-center gap-2">
+            <Package className="w-5 h-5 text-primary" />
+            المنتجات الأكثر مبيعاً
+          </h3>
+        </div>
+        <div className="p-6">
           {topProducts.length > 0 ? (
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
@@ -302,11 +364,12 @@ const SalesStats = () => {
                   <Tooltip
                     contentStyle={{
                       backgroundColor: 'hsl(var(--card))',
-                      border: '1px solid hsl(var(--border))',
-                      borderRadius: '8px',
+                      border: '1px solid hsl(var(--primary) / 0.3)',
+                      borderRadius: '0',
+                      fontFamily: 'Cormorant Garamond',
                     }}
                     formatter={(value: number, name: string) => [
-                      name === 'quantity' ? `${value} قطعة` : `${value.toFixed(2)} دج`,
+                      name === 'quantity' ? `${value} قطعة` : `${value.toLocaleString()} دج`,
                       name === 'quantity' ? 'الكمية' : 'الإيرادات',
                     ]}
                   />
@@ -317,8 +380,8 @@ const SalesStats = () => {
           ) : (
             <p className="text-muted-foreground text-center py-8">لا توجد مبيعات بعد</p>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </motion.div>
     </div>
   );
 };
