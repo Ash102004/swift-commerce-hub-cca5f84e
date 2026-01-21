@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom';
-import { ShoppingBag, Menu, X, Crown, MapPin } from 'lucide-react';
+import { ShoppingBag, Menu, X, Crown } from 'lucide-react';
 import { useState } from 'react';
 import { useCart } from '@/contexts/CartContext';
 import { Button } from '@/components/ui/button';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -33,7 +34,10 @@ const Header = () => {
             <NavItem to="/admin" label="الإدارة" />
           </nav>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            {/* Theme Toggle */}
+            <ThemeToggle />
+            
             {/* Cart Button */}
             <Link 
               to="/cart" 

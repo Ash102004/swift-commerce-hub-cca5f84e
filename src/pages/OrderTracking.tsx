@@ -1,45 +1,50 @@
 import { useState } from 'react';
 import Layout from '@/components/layout/Layout';
-import { useStore } from '@/contexts/StoreContext';
+import { useOrders } from '@/hooks/useOrders';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Search, Package, Truck, CheckCircle, Clock, MapPin, Phone, User } from 'lucide-react';
-import { Order } from '@/types';
+import { Search, Package, Truck, CheckCircle, Clock, MapPin, Phone, User, Crown, Shield, Scroll } from 'lucide-react';
 
-const statusConfig = {
+type OrderStatus = 'pending' | 'confirmed' | 'shipped' | 'delivered';
+
+const statusConfig: Record<OrderStatus, {
+  label: string;
+  color: string;
+  icon: typeof Clock;
+  step: number;
+}> = {
   pending: {
     label: 'قيد الانتظار',
-    color: 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20',
+    color: 'bg-amber-500/10 text-amber-600 border-amber-500/30',
     icon: Clock,
     step: 1,
   },
   confirmed: {
     label: 'تم التأكيد',
-    color: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
+    color: 'bg-blue-500/10 text-blue-600 border-blue-500/30',
     icon: CheckCircle,
     step: 2,
   },
   shipped: {
     label: 'جاري الشحن',
-    color: 'bg-purple-500/10 text-purple-600 border-purple-500/20',
+    color: 'bg-purple-500/10 text-purple-600 border-purple-500/30',
     icon: Truck,
     step: 3,
   },
   delivered: {
     label: 'تم التوصيل',
-    color: 'bg-green-500/10 text-green-600 border-green-500/20',
+    color: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30',
     icon: CheckCircle,
     step: 4,
   },
 };
 
 const OrderTracking = () => {
-  const { orders } = useStore();
+  const { data: orders = [] } = useOrders();
   const [searchQuery, setSearchQuery] = useState('');
-  const [foundOrders, setFoundOrders] = useState<Order[]>([]);
+  const [foundOrders, setFoundOrders] = useState<typeof orders>([]);
   const [hasSearched, setHasSearched] = useState(false);
 
   const handleSearch = (e: React.FormEvent) => {
@@ -50,7 +55,7 @@ const OrderTracking = () => {
     // Search by phone number or order ID
     const results = orders.filter(
       order => 
-        order.customerPhone.includes(searchQuery) || 
+        order.customer_phone.includes(searchQuery) || 
         order.id.includes(searchQuery)
     );
     
@@ -70,171 +75,200 @@ const OrderTracking = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-2xl mx-auto">
-          <div className="text-center mb-8">
-            <h1 className="font-display text-3xl md:text-4xl font-semibold mb-4">
-              تتبع طلبك
-            </h1>
-            <p className="text-muted-foreground">
-              أدخل رقم هاتفك أو رقم الطلب لمتابعة حالة طلبك
-            </p>
+      {/* Hero Section */}
+      <div className="hero-medieval py-16 relative">
+        <div className="container mx-auto px-4 text-center relative z-10">
+          <div className="flex items-center justify-center gap-3 mb-6">
+            <Scroll className="w-8 h-8 text-primary" />
           </div>
+          <h1 className="font-display text-3xl md:text-5xl font-semibold gold-text mb-4">
+            تتبع طلبك الملكي
+          </h1>
+          <p className="text-secondary-foreground/60 text-body text-lg max-w-xl mx-auto">
+            أدخل رقم هاتفك أو رقم الطلب لمتابعة حالة طلبك الملكي
+          </p>
+        </div>
+      </div>
 
-          {/* Search Form */}
-          <Card className="mb-8">
-            <CardContent className="pt-6">
-              <form onSubmit={handleSearch} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="search">رقم الهاتف أو رقم الطلب</Label>
-                  <div className="flex gap-3">
-                    <Input
-                      id="search"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="أدخل رقم الهاتف أو رقم الطلب"
-                      className="flex-1"
-                      dir="ltr"
-                    />
-                    <Button type="submit">
-                      <Search className="w-4 h-4 mr-2" />
-                      بحث
-                    </Button>
-                  </div>
+      <div className="bg-parchment py-12">
+        <div className="container mx-auto px-4">
+          <div className="max-w-3xl mx-auto">
+            {/* Search Form */}
+            <div className="card-royal rounded-none p-8 mb-10">
+              <form onSubmit={handleSearch} className="space-y-6">
+                <div className="flex items-center gap-3 pb-4 border-b border-border mb-6">
+                  <Search className="w-5 h-5 text-primary" />
+                  <Label htmlFor="search" className="font-display text-lg">البحث عن الطلب</Label>
+                </div>
+                <div className="flex gap-4">
+                  <Input
+                    id="search"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="أدخل رقم الهاتف أو رقم الطلب"
+                    className="flex-1 rounded-none border-border focus:border-primary h-12 text-lg"
+                    dir="ltr"
+                  />
+                  <Button type="submit" className="btn-royal rounded-none px-8 h-12">
+                    <Search className="w-4 h-4 mr-2" />
+                    بحث
+                  </Button>
                 </div>
               </form>
-            </CardContent>
-          </Card>
+            </div>
 
-          {/* Results */}
-          {hasSearched && (
-            <>
-              {foundOrders.length === 0 ? (
-                <Card>
-                  <CardContent className="py-12 text-center">
-                    <Package className="w-16 h-16 mx-auto text-muted-foreground/30 mb-4" />
-                    <h3 className="font-medium text-lg mb-2">لم يتم العثور على طلبات</h3>
-                    <p className="text-muted-foreground text-sm">
+            {/* Results */}
+            {hasSearched && (
+              <>
+                {foundOrders.length === 0 ? (
+                  <div className="card-royal rounded-none py-16 text-center fade-in">
+                    <div className="w-24 h-24 mx-auto mb-6 border-2 border-primary/30 flex items-center justify-center">
+                      <Package className="w-12 h-12 text-muted-foreground/30" />
+                    </div>
+                    <h3 className="font-display text-xl mb-3">لم يتم العثور على طلبات</h3>
+                    <p className="text-muted-foreground text-body">
                       تأكد من إدخال رقم الهاتف أو رقم الطلب الصحيح
                     </p>
-                  </CardContent>
-                </Card>
-              ) : (
-                <div className="space-y-6">
-                  <h2 className="font-medium text-lg">
-                    تم العثور على {foundOrders.length} طلب
-                  </h2>
-                  
-                  {foundOrders.map((order) => {
-                    const status = statusConfig[order.status];
-                    const StatusIcon = status.icon;
+                  </div>
+                ) : (
+                  <div className="space-y-8">
+                    <div className="divider-royal">
+                      <span className="font-display">تم العثور على {foundOrders.length} طلب</span>
+                    </div>
                     
-                    return (
-                      <Card key={order.id} className="overflow-hidden">
-                        <CardHeader className="bg-muted/50">
-                          <div className="flex items-center justify-between flex-wrap gap-4">
-                            <div>
-                              <p className="text-sm text-muted-foreground">رقم الطلب</p>
-                              <CardTitle className="text-lg font-mono">#{order.id}</CardTitle>
-                            </div>
-                            <Badge className={status.color}>
-                              <StatusIcon className="w-3 h-3 mr-1" />
-                              {status.label}
-                            </Badge>
-                          </div>
-                        </CardHeader>
-                        
-                        <CardContent className="pt-6 space-y-6">
-                          {/* Progress Steps */}
-                          <div className="relative">
-                            <div className="flex justify-between items-center">
-                              {Object.entries(statusConfig).map(([key, config], index) => {
-                                const isActive = status.step >= config.step;
-                                const Icon = config.icon;
-                                
-                                return (
-                                  <div key={key} className="flex flex-col items-center relative z-10">
-                                    <div
-                                      className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
-                                        isActive
-                                          ? 'bg-primary text-primary-foreground'
-                                          : 'bg-muted text-muted-foreground'
-                                      }`}
-                                    >
-                                      <Icon className="w-5 h-5" />
-                                    </div>
-                                    <span className="text-xs mt-2 text-center hidden sm:block">
-                                      {config.label}
-                                    </span>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                            {/* Progress Line */}
-                            <div className="absolute top-5 left-0 right-0 h-0.5 bg-muted -z-0">
-                              <div
-                                className="h-full bg-primary transition-all"
-                                style={{ width: `${((status.step - 1) / 3) * 100}%` }}
-                              />
-                            </div>
-                          </div>
-
-                          {/* Order Details */}
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t">
-                            <div className="flex items-center gap-3">
-                              <User className="w-5 h-5 text-muted-foreground" />
-                              <div>
-                                <p className="text-xs text-muted-foreground">الاسم</p>
-                                <p className="font-medium">{order.customerName}</p>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-3">
-                              <Phone className="w-5 h-5 text-muted-foreground" />
-                              <div>
-                                <p className="text-xs text-muted-foreground">رقم الهاتف</p>
-                                <p className="font-medium" dir="ltr">{order.customerPhone}</p>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-3 sm:col-span-2">
-                              <MapPin className="w-5 h-5 text-muted-foreground" />
-                              <div>
-                                <p className="text-xs text-muted-foreground">العنوان</p>
-                                <p className="font-medium">{order.customerAddress}</p>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Order Items */}
-                          <div className="pt-4 border-t">
-                            <h4 className="font-medium mb-3">المنتجات</h4>
-                            <div className="space-y-2">
-                              {order.items.map((item, index) => (
-                                <div key={index} className="flex justify-between text-sm">
-                                  <span className="text-muted-foreground">
-                                    {item.product.nameAr || item.product.name} × {item.quantity}
-                                  </span>
-                                  <span>{(item.product.price * item.quantity).toFixed(2)} دج</span>
+                    {foundOrders.map((order, index) => {
+                      const orderStatus = (order.status || 'pending') as OrderStatus;
+                      const status = statusConfig[orderStatus] || statusConfig.pending;
+                      const StatusIcon = status.icon;
+                      const items = Array.isArray(order.items) ? order.items : [];
+                      
+                      return (
+                        <div 
+                          key={order.id} 
+                          className="card-royal rounded-none overflow-hidden fade-in"
+                          style={{ animationDelay: `${index * 0.1}s` }}
+                        >
+                          {/* Order Header */}
+                          <div className="bg-secondary p-6 border-b border-primary/20">
+                            <div className="flex items-center justify-between flex-wrap gap-4">
+                              <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 border-2 border-primary flex items-center justify-center">
+                                  <Crown className="w-6 h-6 text-primary" />
                                 </div>
-                              ))}
-                            </div>
-                            <div className="flex justify-between font-semibold mt-4 pt-4 border-t">
-                              <span>المجموع الكلي</span>
-                              <span className="text-primary">{order.total.toFixed(2)} دج</span>
+                                <div>
+                                  <p className="text-xs text-secondary-foreground/60 uppercase tracking-wider">رقم الطلب</p>
+                                  <p className="font-display text-lg font-medium text-secondary-foreground font-mono">#{order.id.slice(0, 8)}</p>
+                                </div>
+                              </div>
+                              <Badge className={`${status.color} border px-4 py-2 font-display rounded-none`}>
+                                <StatusIcon className="w-4 h-4 mr-2" />
+                                {status.label}
+                              </Badge>
                             </div>
                           </div>
+                          
+                          <div className="p-8 space-y-8">
+                            {/* Progress Steps */}
+                            <div className="relative py-4">
+                              <div className="flex justify-between items-center relative z-10">
+                                {Object.entries(statusConfig).map(([key, config]) => {
+                                  const isActive = status.step >= config.step;
+                                  const Icon = config.icon;
+                                  
+                                  return (
+                                    <div key={key} className="flex flex-col items-center">
+                                      <div
+                                        className={`w-14 h-14 flex items-center justify-center transition-all border-2 ${
+                                          isActive
+                                            ? 'bg-primary border-primary text-primary-foreground'
+                                            : 'bg-muted border-border text-muted-foreground'
+                                        }`}
+                                      >
+                                        <Icon className="w-6 h-6" />
+                                      </div>
+                                      <span className={`text-xs mt-3 text-center font-display hidden sm:block ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>
+                                        {config.label}
+                                      </span>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                              {/* Progress Line */}
+                              <div className="absolute top-9 left-7 right-7 h-0.5 bg-border -z-0">
+                                <div
+                                  className="h-full bg-primary transition-all duration-700"
+                                  style={{ width: `${((status.step - 1) / 3) * 100}%` }}
+                                />
+                              </div>
+                            </div>
 
-                          {/* Order Date */}
-                          <div className="text-sm text-muted-foreground pt-4 border-t">
-                            تاريخ الطلب: {formatDate(order.createdAt)}
+                            {/* Order Details */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-border">
+                              <div className="flex items-start gap-4 p-4 bg-muted/50 border border-border">
+                                <div className="w-10 h-10 border border-primary/30 flex items-center justify-center shrink-0">
+                                  <User className="w-5 h-5 text-primary" />
+                                </div>
+                                <div>
+                                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">الاسم</p>
+                                  <p className="font-display font-medium">{order.customer_name}</p>
+                                </div>
+                              </div>
+                              <div className="flex items-start gap-4 p-4 bg-muted/50 border border-border">
+                                <div className="w-10 h-10 border border-primary/30 flex items-center justify-center shrink-0">
+                                  <Phone className="w-5 h-5 text-primary" />
+                                </div>
+                                <div>
+                                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">رقم الهاتف</p>
+                                  <p className="font-display font-medium" dir="ltr">{order.customer_phone}</p>
+                                </div>
+                              </div>
+                              <div className="flex items-start gap-4 p-4 bg-muted/50 border border-border md:col-span-2">
+                                <div className="w-10 h-10 border border-primary/30 flex items-center justify-center shrink-0">
+                                  <MapPin className="w-5 h-5 text-primary" />
+                                </div>
+                                <div>
+                                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">العنوان</p>
+                                  <p className="font-display font-medium">{order.address}, {order.commune}, {order.wilaya}</p>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Order Items */}
+                            <div className="pt-6 border-t border-border">
+                              <div className="flex items-center gap-3 mb-4">
+                                <Shield className="w-5 h-5 text-primary" />
+                                <h4 className="font-display font-medium">المنتجات</h4>
+                              </div>
+                              <div className="space-y-3 bg-muted/30 p-4 border border-border">
+                                {items.map((item: any, idx: number) => (
+                                  <div key={idx} className="flex justify-between text-sm py-2 border-b border-border last:border-0">
+                                    <span className="text-muted-foreground text-body">
+                                      {item.productName || item.name} × {item.quantity}
+                                    </span>
+                                    <span className="font-display">{((item.price || 0) * (item.quantity || 1)).toLocaleString()} دج</span>
+                                  </div>
+                                ))}
+                              </div>
+                              <div className="flex justify-between items-center mt-6 pt-4 border-t border-primary/30">
+                                <span className="font-display font-medium">المجموع الكلي</span>
+                                <span className="text-2xl font-display font-semibold gold-text">{order.total.toLocaleString()} دج</span>
+                              </div>
+                            </div>
+
+                            {/* Order Date */}
+                            <div className="text-sm text-muted-foreground pt-4 border-t border-border flex items-center gap-2">
+                              <Clock className="w-4 h-4" />
+                              تاريخ الطلب: {formatDate(order.created_at)}
+                            </div>
                           </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </div>
-              )}
-            </>
-          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
         </div>
       </div>
     </Layout>
