@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -18,10 +19,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus, Pencil, Trash2, Ticket, Copy, Check, Loader2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Ticket, Copy, Check, Loader2, Crown } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { useCoupons, useAddCoupon, useUpdateCoupon, useDeleteCoupon, DbCoupon } from '@/hooks/useCoupons';
+import { staggerContainer, staggerItem } from '@/components/motion/MotionComponents';
 
 const CouponManager = () => {
   const { data: coupons = [], isLoading } = useCoupons();
@@ -151,69 +153,88 @@ const CouponManager = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <div className="flex items-center justify-center py-16">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+        >
+          <Loader2 className="w-10 h-10 text-primary" />
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="font-display text-xl font-semibold">كوبونات الخصم</h2>
-          <p className="text-sm text-muted-foreground">إدارة أكواد الخصم والعروض</p>
+      <motion.div 
+        className="flex items-center justify-between"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 border-2 border-primary flex items-center justify-center">
+            <Ticket className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <h2 className="font-display text-2xl font-semibold gold-text">كوبونات الخصم</h2>
+            <p className="text-sm text-muted-foreground">إدارة أكواد الخصم والعروض</p>
+          </div>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button onClick={() => handleOpenDialog()} className="gap-2 btn-fire">
-              <Plus className="w-4 h-4" />
-              إضافة كوبون
-            </Button>
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+              <Button onClick={() => handleOpenDialog()} className="gap-2 btn-royal rounded-none px-6">
+                <Plus className="w-4 h-4" />
+                إضافة كوبون
+              </Button>
+            </motion.div>
           </DialogTrigger>
-          <DialogContent className="max-w-md" dir="rtl">
+          <DialogContent className="max-w-md rounded-none" dir="rtl">
             <DialogHeader>
-              <DialogTitle>
+              <DialogTitle className="font-display text-xl gold-text">
                 {editingCoupon ? 'تعديل الكوبون' : 'إنشاء كوبون جديد'}
               </DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-5">
               <div className="space-y-2">
-                <Label>كود الخصم</Label>
+                <Label className="font-display">كود الخصم</Label>
                 <div className="flex gap-2">
                   <Input
                     value={formData.code}
                     onChange={e => setFormData(prev => ({ ...prev, code: e.target.value.toUpperCase() }))}
                     placeholder="مثال: SAVE20"
-                    className="font-mono"
+                    className="font-mono rounded-none"
                   />
-                  <Button type="button" variant="outline" onClick={generateRandomCode}>
-                    توليد
-                  </Button>
+                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                    <Button type="button" variant="outline" onClick={generateRandomCode} className="rounded-none">
+                      توليد
+                    </Button>
+                  </motion.div>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>نوع الخصم</Label>
+                  <Label className="font-display">نوع الخصم</Label>
                   <Select
                     value={formData.type}
                     onValueChange={(value: 'percentage' | 'fixed') => 
                       setFormData(prev => ({ ...prev, type: value }))
                     }
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="rounded-none">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="rounded-none">
                       <SelectItem value="percentage">نسبة مئوية (%)</SelectItem>
                       <SelectItem value="fixed">مبلغ ثابت (دج)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>القيمة</Label>
+                  <Label className="font-display">القيمة</Label>
                   <Input
                     type="number"
                     value={formData.value}
@@ -221,45 +242,49 @@ const CouponManager = () => {
                     placeholder={formData.type === 'percentage' ? '10' : '500'}
                     min="0"
                     max={formData.type === 'percentage' ? '100' : undefined}
+                    className="rounded-none"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>الحد الأدنى للطلب (دج)</Label>
+                  <Label className="font-display">الحد الأدنى للطلب (دج)</Label>
                   <Input
                     type="number"
                     value={formData.minOrder}
                     onChange={e => setFormData(prev => ({ ...prev, minOrder: e.target.value }))}
                     placeholder="0"
                     min="0"
+                    className="rounded-none"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>الحد الأقصى للاستخدام</Label>
+                  <Label className="font-display">الحد الأقصى للاستخدام</Label>
                   <Input
                     type="number"
                     value={formData.maxUses}
                     onChange={e => setFormData(prev => ({ ...prev, maxUses: e.target.value }))}
                     placeholder="0 = غير محدود"
                     min="0"
+                    className="rounded-none"
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label>تاريخ الانتهاء (اختياري)</Label>
+                <Label className="font-display">تاريخ الانتهاء (اختياري)</Label>
                 <Input
                   type="date"
                   value={formData.expiresAt}
                   onChange={e => setFormData(prev => ({ ...prev, expiresAt: e.target.value }))}
                   min={new Date().toISOString().split('T')[0]}
+                  className="rounded-none"
                 />
               </div>
 
-              <div className="flex items-center justify-between py-2">
-                <Label>الكوبون فعال</Label>
+              <div className="flex items-center justify-between py-3 px-4 bg-muted/50 border border-border">
+                <Label className="font-display">الكوبون فعال</Label>
                 <Switch
                   checked={formData.isActive}
                   onCheckedChange={checked => setFormData(prev => ({ ...prev, isActive: checked }))}
@@ -267,104 +292,134 @@ const CouponManager = () => {
               </div>
 
               <div className="flex gap-3 pt-4">
-                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} className="flex-1" disabled={isSubmitting}>
+                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} className="flex-1 rounded-none font-display" disabled={isSubmitting}>
                   إلغاء
                 </Button>
-                <Button type="submit" className="flex-1 btn-fire" disabled={isSubmitting}>
-                  {isSubmitting && <Loader2 className="w-4 h-4 ml-2 animate-spin" />}
-                  {editingCoupon ? 'حفظ التغييرات' : 'إنشاء الكوبون'}
-                </Button>
+                <motion.div className="flex-1" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                  <Button type="submit" className="w-full btn-royal rounded-none" disabled={isSubmitting}>
+                    {isSubmitting && <Loader2 className="w-4 h-4 ml-2 animate-spin" />}
+                    {editingCoupon ? 'حفظ التغييرات' : 'إنشاء الكوبون'}
+                  </Button>
+                </motion.div>
               </div>
             </form>
           </DialogContent>
         </Dialog>
-      </div>
+      </motion.div>
 
       {/* Coupons List */}
       {coupons.length === 0 ? (
-        <div className="text-center py-12 bg-card rounded-lg">
-          <Ticket className="w-16 h-16 mx-auto text-muted-foreground/30 mb-4" />
-          <h3 className="font-display text-xl text-muted-foreground">لا توجد كوبونات</h3>
-          <p className="text-sm text-muted-foreground mt-2">أنشئ كوبون خصم لعملائك</p>
-        </div>
+        <motion.div 
+          className="card-royal rounded-none py-16 text-center"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.4 }}
+        >
+          <div className="w-20 h-20 mx-auto border-2 border-primary/30 flex items-center justify-center mb-6">
+            <Ticket className="w-10 h-10 text-muted-foreground/30" />
+          </div>
+          <h3 className="font-display text-xl mb-2">لا توجد كوبونات</h3>
+          <p className="text-sm text-muted-foreground">أنشئ كوبون خصم لعملائك</p>
+        </motion.div>
       ) : (
-        <div className="grid gap-4">
-          {coupons.map(coupon => {
-            const isExpired = coupon.expires_at && new Date(coupon.expires_at) < new Date();
-            const isMaxedOut = coupon.max_uses && coupon.max_uses > 0 && coupon.used_count >= coupon.max_uses;
-            const isInactive = !coupon.is_active || isExpired || isMaxedOut;
+        <motion.div 
+          className="space-y-4"
+          variants={staggerContainer}
+          initial="hidden"
+          animate="visible"
+        >
+          <AnimatePresence>
+            {coupons.map((coupon) => {
+              const isExpired = coupon.expires_at && new Date(coupon.expires_at) < new Date();
+              const isMaxedOut = coupon.max_uses && coupon.max_uses > 0 && coupon.used_count >= coupon.max_uses;
+              const isInactive = !coupon.is_active || isExpired || isMaxedOut;
 
-            return (
-              <div
-                key={coupon.id}
-                className={`bg-card rounded-lg p-4 card-elevated ${isInactive ? 'opacity-60' : ''}`}
-              >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <Ticket className="w-6 h-6 text-primary" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-mono font-semibold text-lg">{coupon.code}</span>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6"
-                          onClick={() => handleCopyCode(coupon.code)}
-                        >
-                          {copiedCode === coupon.code ? (
-                            <Check className="w-3 h-3 text-green-500" />
-                          ) : (
-                            <Copy className="w-3 h-3" />
-                          )}
-                        </Button>
-                      </div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <Badge variant={coupon.is_active && !isExpired && !isMaxedOut ? 'default' : 'secondary'}>
-                          {coupon.type === 'percentage' ? `${coupon.value}%` : `${coupon.value} دج`}
-                        </Badge>
-                        {coupon.min_order && coupon.min_order > 0 && (
-                          <Badge variant="outline">الحد الأدنى: {coupon.min_order} دج</Badge>
-                        )}
-                        {coupon.max_uses && coupon.max_uses > 0 && (
-                          <Badge variant="outline">
-                            {coupon.used_count}/{coupon.max_uses} استخدام
+              return (
+                <motion.div
+                  key={coupon.id}
+                  variants={staggerItem}
+                  layout
+                  exit={{ opacity: 0, x: -20 }}
+                  whileHover={{ y: -4, transition: { duration: 0.2 } }}
+                  className={`card-royal rounded-none p-6 ${isInactive ? 'opacity-60' : ''}`}
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                      <motion.div 
+                        className="w-14 h-14 border-2 border-primary flex items-center justify-center bg-primary/5"
+                        whileHover={{ rotate: 5, scale: 1.05 }}
+                      >
+                        <Ticket className="w-7 h-7 text-primary" />
+                      </motion.div>
+                      <div>
+                        <div className="flex items-center gap-3 mb-2">
+                          <span className="font-mono font-semibold text-xl">{coupon.code}</span>
+                          <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7"
+                              onClick={() => handleCopyCode(coupon.code)}
+                            >
+                              {copiedCode === coupon.code ? (
+                                <Check className="w-4 h-4 text-primary" />
+                              ) : (
+                                <Copy className="w-4 h-4" />
+                              )}
+                            </Button>
+                          </motion.div>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Badge className="bg-primary/10 text-primary border-primary/30 rounded-none font-display">
+                            {coupon.type === 'percentage' ? `${coupon.value}%` : `${coupon.value} دج`}
                           </Badge>
-                        )}
-                        {isExpired && <Badge variant="destructive">منتهي</Badge>}
-                        {isMaxedOut && <Badge variant="destructive">مستنفد</Badge>}
-                        {!coupon.is_active && <Badge variant="secondary">معطل</Badge>}
+                          {coupon.min_order && coupon.min_order > 0 && (
+                            <Badge variant="outline" className="rounded-none">الحد الأدنى: {coupon.min_order.toLocaleString()} دج</Badge>
+                          )}
+                          {coupon.max_uses && coupon.max_uses > 0 && (
+                            <Badge variant="outline" className="rounded-none">
+                              {coupon.used_count}/{coupon.max_uses} استخدام
+                            </Badge>
+                          )}
+                          {isExpired && <Badge variant="destructive" className="rounded-none">منتهي</Badge>}
+                          {isMaxedOut && <Badge variant="destructive" className="rounded-none">مستنفد</Badge>}
+                          {!coupon.is_active && <Badge variant="secondary" className="rounded-none">معطل</Badge>}
+                        </div>
                       </div>
                     </div>
+                    <div className="flex items-center gap-3">
+                      {coupon.expires_at && !isExpired && (
+                        <span className="text-xs text-muted-foreground">
+                          ينتهي: {format(new Date(coupon.expires_at), 'dd/MM/yyyy')}
+                        </span>
+                      )}
+                      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => handleOpenDialog(coupon)}
+                          className="rounded-none border-border hover:border-primary hover:bg-primary/10"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </Button>
+                      </motion.div>
+                      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="text-destructive hover:text-destructive rounded-none border-border hover:border-destructive hover:bg-destructive/10"
+                          onClick={() => handleDelete(coupon.id)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </motion.div>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    {coupon.expires_at && !isExpired && (
-                      <span className="text-xs text-muted-foreground">
-                        ينتهي: {format(new Date(coupon.expires_at), 'dd/MM/yyyy')}
-                      </span>
-                    )}
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => handleOpenDialog(coupon)}
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="text-destructive hover:text-destructive"
-                      onClick={() => handleDelete(coupon.id)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
+        </motion.div>
       )}
     </div>
   );
